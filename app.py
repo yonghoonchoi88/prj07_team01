@@ -1296,7 +1296,6 @@ class LabelingApp:
 # 3. 프로그램 실행
 # ==================================================
 
-### ㅁ너난
 if __name__ == "__main__":
     root = tk.Tk()
     app = LabelingApp(root)

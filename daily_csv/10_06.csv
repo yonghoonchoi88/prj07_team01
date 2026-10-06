@@ -3,13 +3,13 @@
 2026-10-06,최용훈,Done,classes.yaml 도입,Class 목록을 configs/classes.yaml로 관리 (4 고무장갑 enabled: false),완료,v2.0
 2026-10-06,최용훈,Done,폴더 분리 저장,labels 폴더를 Raw | Work | Final로 분리 · Raw는 저장 금지(원본 보호),완료,v2.0
 2026-10-06,심준형,Done,Zone.Identifier 정리,Zone.Identifier 파일 삭제 및 .gitignore 무시 설정,완료,
-2026-10-06,심준형,Done,requirements.txt 정리,실행에 필요한 pillow · pyyaml만 남김 (yaml 모듈 없음 에러 해결),완료,v3.0
-2026-10-06,박건,Done,작업자/검수자 기능,작업자/검수자 중 하나 선택 + 5명 이름 선택 · 작업자는 Work에만 · 검수자는 Final에만 저장,완료,v3.0
-2026-10-06,이승훈,Done,scene_type 추가,이미지 전체 정보 4종(kimchi_with_target / normal_kimchi / target_only / other_review) 선택 기능,완료,v3.0
-2026-10-06,이승훈,Done,label.csv 작업 기록,저장할 때마다 labels/label.csv에 파일명 · 작업일자 · work/final · 작업자명 · scene_type 기록,완료,v3.0
-2026-10-06,김하민,Done,RAW → FINAL 직행 금지,Work에 있는 파일만 Final로 저장 가능 · 검수자 RAW 되돌리기 금지,완료,v3.1
-2026-10-06,김하민,Done,README 업데이트,역할 · scene_type · label.csv · RAW → FINAL 금지 규칙 반영 (README 참고),완료,v3.1
+2026-10-06,심준형,Done,requirements.txt 정리,실행에 필요한 pillow · pyyaml만 남김 (yaml 모듈 없음 에러 해결),완료,v2.0
+2026-10-06,박건,Done,작업자/검수자 기능,작업자/검수자 중 하나 선택 + 5명 이름 선택 · 작업자는 Work에만 · 검수자는 Final에만 저장,완료,v2.0
+2026-10-06,이승훈,Done,scene_type 추가,이미지 전체 정보 4종(kimchi_with_target / normal_kimchi / target_only / other_review) 선택 기능,완료,v2.0
+2026-10-06,이승훈,Done,label.csv 작업 기록,저장할 때마다 labels/label.csv에 파일명 · 작업일자 · work/final · 작업자명 · scene_type 기록,완료,v2.0
+2026-10-06,김하민,Done,RAW → FINAL 직행 금지,Work에 있는 파일만 Final로 저장 가능 · 검수자 RAW 되돌리기 금지,완료,v2.1
+2026-10-06,김하민,Done,README 업데이트,역할 · scene_type · label.csv · RAW → FINAL 금지 규칙 반영 (README 참고),완료,v2.1
 2026-10-06,박건,Doing,pratice 폴더 삭제,ch 브랜치에서 삭제 후 push 완료 · main 반영은 Pull Request merge 필요,진행 중,
 2026-10-06,박건,Doing,pre-commit 설정,Zone.Identifier · 이미지 · labels 데이터 커밋 자동 차단 설정 파일 작성,진행 중,
 2026-10-06,박건,Todo,pre-commit 팀 적용,팀원 각자 pip install pre-commit → pre-commit install 실행,예정,
-2026-10-06,심준형,Todo,3.1 버전 QA,작업자/검수자 · scene_type · label.csv · Final 저장 제한 기능 검사(QA),예정,v3.1
+2026-10-06,심준형,Todo,3.1 버전 QA,작업자/검수자 · scene_type · label.csv · Final 저장 제한 기능 검사(QA),예정,v2.1

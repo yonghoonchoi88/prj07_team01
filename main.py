@@ -1,5 +1,5 @@
 """
-조각김치 이물검출 라벨링 프로그램 v2.0 - 프로그램 시작
+조각김치 이물검출 라벨링 프로그램 v3.0 - 프로그램 시작
 =====================================================
 
 [실행]
@@ -7,11 +7,12 @@
     python main.py
 
 [하는 일]
-    1) configs/classes.yaml 을 읽어서 Class 목록을 만든다.
+    1) configs/classes.yaml 을 읽어서 Class · 작업자 이름 · scene_type 목록을 만든다.
     2) validator 로 설정 파일이 올바른지 검사한다.
     3) 메인 화면(MainWindow)을 띄운다.
 
-[라벨 흐름]  labels/Raw (원본) ─저장─▶ labels/Work ─완료─▶ labels/Final
+[라벨 흐름]  labels/Raw (원본) ─작업자 저장─▶ labels/Work ─검수자 저장─▶ labels/Final
+[작업 기록]  저장할 때마다 labels/label.csv 에 한 줄씩 기록
 """
 
 import sys
@@ -32,8 +33,13 @@ DEFAULT_COLORS = ["#F59E0B", "#E91E63", "#16A34A", "#2563EB", "#9333EA", "#B4530
                   "#DB2777", "#65A30D", "#0EA5E9"]
 
 
-def load_classes(path):
-    """classes.yaml → [{"id": 0, "name": "...", "enabled": True, "color": "#..."}, ...]"""
+def load_config(path):
+    """
+    classes.yaml → 프로그램이 쓰기 좋은 모양으로 정리
+        classes     : [{"id": 0, "name": "...", "enabled": True, "color": "#..."}, ...]
+        members     : ["최용훈", "박건", ...]
+        scene_types : {"kimchi_with_target": "김치와 이물질", ...}   (순서 유지)
+    """
     with open(path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
@@ -50,12 +56,17 @@ def load_classes(path):
             "enabled": info.get("enabled", True),
             "color": info.get("color") or DEFAULT_COLORS[cid % len(DEFAULT_COLORS)],
         })
-    return classes
+
+    return {
+        "classes": classes,
+        "members": [str(m).strip() for m in data["members"]],
+        "scene_types": {str(k): str(v) for k, v in data["scene_types"].items()},
+    }
 
 
 def main():
     try:
-        classes = load_classes(CONFIG_PATH)
+        config = load_config(CONFIG_PATH)
     except (OSError, ValueError, yaml.YAMLError) as e:
         # 설정이 잘못되면 화면을 띄우지 않고 이유만 알려주고 끝냅니다.
         root = tk.Tk()
@@ -65,7 +76,7 @@ def main():
         sys.exit(1)
 
     root = tk.Tk()
-    MainWindow(root, classes)
+    MainWindow(root, config)
     root.mainloop()
 
 

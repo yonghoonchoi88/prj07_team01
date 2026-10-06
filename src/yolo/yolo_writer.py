@@ -1,10 +1,12 @@
 """
-yolo_writer.py - YOLO TXT 저장 (Save) + 단계 이동
-================================================
+yolo_writer.py - YOLO TXT 저장 (Save) - 역할별 저장 위치
+=====================================================
 
 [담당]
-    - BBox 목록 → YOLO TXT (항상 WORK 폴더에 저장)
-    - 검수 완료: WORK → FINAL 로 '이동'
+    - BBox 목록 → YOLO TXT
+    - 역할(role)에 따라 저장 위치를 딱 하나로 정함
+          작업자(worker)   → labels/Work  에만 저장
+          검수자(reviewer) → labels/Final 에만 저장 (저장 후 Work 파일은 정리)
     - 예전 라벨을 RAW 로 '복사' (처음 한 번, 덮어쓰기 X)
 
 [안전 장치]
@@ -41,6 +43,15 @@ def is_raw_path(path):
     return any(parts[i] == "labels" and parts[i + 1] == STAGE_RAW for i in range(len(parts) - 1))
 
 
+def format_yolo_lines(boxes, img_w, img_h):
+    """BBox 목록 → YOLO TXT 한 줄씩 (문자열 목록). 저장 전에 validator 로 미리 검사할 때도 씁니다."""
+    lines = []
+    for b in boxes:
+        xc, yc, w, h = bbox_to_yolo(b["x1"], b["y1"], b["x2"], b["y2"], img_w, img_h)
+        lines.append(f"{b['cls']} {xc:.6f} {yc:.6f} {w:.6f} {h:.6f}")
+    return lines
+
+
 def write_yolo_file(label_path, boxes, img_w, img_h):
     """
     BBox 목록 → YOLO TXT. BBox 가 0개면 빈 파일(= '객체 없음' 검수 완료)이 됩니다.
@@ -55,36 +66,43 @@ def write_yolo_file(label_path, boxes, img_w, img_h):
     label_path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = label_path.with_suffix(".txt.tmp")
     with open(tmp_path, "w", encoding="utf-8") as f:
-        for b in boxes:
-            xc, yc, w, h = bbox_to_yolo(b["x1"], b["y1"], b["x2"], b["y2"], img_w, img_h)
-            f.write(f"{b['cls']} {xc:.6f} {yc:.6f} {w:.6f} {h:.6f}\n")
+        for line in format_yolo_lines(boxes, img_w, img_h):
+            f.write(line + "\n")
     os.replace(tmp_path, label_path)
 
 
-def save_to_work(image_path, boxes, img_w, img_h):
-    """저장 버튼 = 항상 WORK 에 저장. 저장한 경로를 돌려줍니다."""
-    work_path = get_label_path(image_path, STAGE_WORK)
-    write_yolo_file(work_path, boxes, img_w, img_h)
-    return work_path
+# ==================================================
+# 3. 역할별 저장 (작업자 → Work / 검수자 → Final)
+# ==================================================
+
+# 역할 → 저장할 수 있는 단 하나의 단계
+ROLE_WORKER = "worker"
+ROLE_REVIEWER = "reviewer"
+ROLE_STAGE = {ROLE_WORKER: STAGE_WORK, ROLE_REVIEWER: STAGE_FINAL}
+
+
+def save_for_role(role, image_path, boxes, img_w, img_h):
+    """
+    역할에 맞는 폴더에만 저장합니다. 저장한 경로를 돌려줍니다.
+        작업자 → Work
+        검수자 → Final  (검수가 끝났으니 Work 에 남은 파일은 지워서 'Work → Final 이동'과 같은 결과)
+    """
+    if role not in ROLE_STAGE:
+        raise PermissionError("작업자 또는 검수자를 먼저 선택해야 저장할 수 있습니다.")
+    stage = ROLE_STAGE[role]
+    label_path = get_label_path(image_path, stage)
+    write_yolo_file(label_path, boxes, img_w, img_h)
+
+    if stage == STAGE_FINAL:
+        work_path = get_label_path(image_path, STAGE_WORK)
+        if work_path.exists():
+            os.remove(work_path)
+    return label_path
 
 
 # ==================================================
-# 3. 단계 이동 / 복사
+# 4. RAW 복사
 # ==================================================
-
-def move_work_to_final(image_path):
-    """
-    검수 완료: WORK 의 TXT 를 FINAL 로 '이동'합니다. (WORK 에는 더 이상 남지 않음)
-    FINAL 에 같은 파일이 있으면 새 내용으로 교체합니다. (다시 검수한 경우)
-    """
-    work_path = get_label_path(image_path, STAGE_WORK)
-    final_path = get_label_path(image_path, STAGE_FINAL)
-    if not work_path.exists():
-        raise FileNotFoundError(f"WORK 에 라벨이 없습니다.\n{work_path}")
-    final_path.parent.mkdir(parents=True, exist_ok=True)
-    os.replace(work_path, final_path)          # 같은 드라이브 안에서는 '이동' = 이름 바꾸기
-    return final_path
-
 
 def copy_to_raw(pairs):
     """

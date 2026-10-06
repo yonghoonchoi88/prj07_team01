@@ -14,7 +14,7 @@ yolo_loader.py - YOLO TXT 불러오기 (Load)
     └─ labels/
        ├─ Raw/train/a.txt     ← 원본 (절대 수정 X)
        ├─ Work/train/a.txt    ← 작업 중 (저장하면 여기에 생김)
-       └─ Final/train/a.txt   ← 검수 완료 (완료 버튼으로 WORK → FINAL 이동)
+       └─ Final/train/a.txt   ← 검수 완료 (검수자가 저장하면 여기에만 저장)
 
 이 파일은 '읽기'만 합니다. 디스크에 쓰는 일은 yolo_writer.py 담당입니다.
 """

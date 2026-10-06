@@ -12,4 +12,4 @@
 2026-10-06,박건,Doing,pratice 폴더 삭제,ch 브랜치에서 삭제 후 push 완료 · main 반영은 Pull Request merge 필요,진행 중,
 2026-10-06,박건,Doing,pre-commit 설정,Zone.Identifier · 이미지 · labels 데이터 커밋 자동 차단 설정 파일 작성,진행 중,
 2026-10-06,박건,Todo,pre-commit 팀 적용,팀원 각자 pip install pre-commit → pre-commit install 실행,예정,
-2026-10-06,심준형,Todo,3.1 버전 QA,작업자/검수자 · scene_type · label.csv · Final 저장 제한 기능 검사(QA),예정,v2.1
+2026-10-06,심준형,Todo, 2.1 버전 QA,작업자/검수자 · scene_type · label.csv · Final 저장 제한 기능 검사(QA),예정,v2.1

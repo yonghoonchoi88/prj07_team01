@@ -33,9 +33,10 @@ from src.yolo.yolo_loader import (STAGE_FINAL, STAGE_RAW, STAGE_WORK, collect_im
                                   get_label_stages, read_yolo_file, split_label_location,
                                   yolo_to_bbox)
 from src.yolo.yolo_writer import (ROLE_REVIEWER, ROLE_STAGE, ROLE_WORKER, bbox_to_yolo,
-                                  copy_to_raw, format_yolo_lines, save_for_role)
+                                  can_move_to_final, copy_to_raw, format_yolo_lines,
+                                  save_for_role)
 
-APP_TITLE = "조각김치 이물검출 라벨링 프로그램 v3.0"
+APP_TITLE = "조각김치 이물검출 라벨링 프로그램 v3.1"
 LABEL_CSV_NAME = "label.csv"         # labels/ 폴더 안에 생기는 작업 기록 파일
 
 # 역할 → 화면 표시 이름 / CSV 의 work_type
@@ -586,7 +587,15 @@ class MainWindow:
                f"scene_type: {self.loaded_scene or '미지정'}")
         if bad_lines:
             msg += f"  |  ⚠ 형식 오류 줄 {bad_lines} 건너뜀"
+        if self.final_blocked():
+            msg += "  |  ⚠ WORK 에 없는 파일 → 검수자는 FINAL 저장 불가 (작업자가 먼저 WORK 저장)"
         self.set_status(msg)
+
+    def final_blocked(self):
+        """검수자인데 지금 이미지가 WORK 에 없으면 True (RAW → FINAL 직행 금지)"""
+        role, _ = self.current_role()
+        return (role == ROLE_REVIEWER and bool(self.image_paths)
+                and not can_move_to_final(self.image_paths[self.index]))
 
     def file_key(self, index=None):
         """label.csv 에 쓰는 파일명. 이미지 기준 폴더에서의 상대 경로 (예: train/a.jpg)"""
@@ -688,7 +697,8 @@ class MainWindow:
         self.update_role_ui()
         role, name = self.current_role()
         self.set_status(f"역할: {ROLE_TEXT[role]} → 저장하면 labels/{ROLE_STAGE[role]} 에만 저장됩니다."
-                        + ("" if name else "  (이름도 골라 주세요)"))
+                        + ("" if name else "  (이름도 골라 주세요)")
+                        + ("  |  ⚠ 지금 이미지는 WORK 에 없어 FINAL 저장 불가" if self.final_blocked() else ""))
 
     def on_name_change(self, event=None):
         self.update_role_ui()
@@ -872,6 +882,18 @@ class MainWindow:
         if role != ROLE_REVIEWER:
             return True
 
+        # FINAL 은 WORK 를 거친 파일만! (RAW 만 있거나 라벨이 없는 이미지는 바로 FINAL 불가)
+        if self.final_blocked():
+            where = {STAGE_FINAL: "이미 FINAL 에 있는 이미지",
+                     STAGE_RAW: "RAW(원본)만 있는 이미지",
+                     None: "라벨이 없는 이미지"}.get(self.loaded_stage, "WORK 에 없는 이미지")
+            self.set_status("✖ WORK 에 없는 파일은 FINAL 로 옮길 수 없습니다.")
+            messagebox.showwarning("FINAL 저장 불가",
+                                   f"{where}입니다.\n\n"
+                                   "FINAL 에는 WORK 에 있는 파일만 옮길 수 있습니다.\n"
+                                   "작업자가 먼저 WORK 에 저장한 뒤 검수해 주세요.")
+            return False
+
         # 검수자는 FINAL 에 저장하기 '전'에 내용을 검사합니다. (파일에 쓰기 전 = 메모리의 BBox 로 검사)
         boxes = self.manager.boxes
         lines = format_yolo_lines(boxes, self.img_w, self.img_h)
@@ -980,6 +1002,11 @@ class MainWindow:
         """RAW 원본 BBox 를 화면에 다시 가져옵니다. (RAW 파일은 읽기만 합니다)"""
         if self.canvas.pil_image is None:
             return
+        if self.current_role()[0] == ROLE_REVIEWER:
+            # 검수자가 RAW 내용을 그대로 FINAL 로 보내는 '우회로'를 막습니다.
+            messagebox.showinfo("RAW 되돌리기", "RAW 되돌리기는 작업자만 할 수 있습니다.\n"
+                                "(RAW 내용은 WORK 를 거쳐야 FINAL 로 갈 수 있습니다)")
+            return
         raw_path = get_label_path(self.image_paths[self.index], STAGE_RAW)
         if not raw_path.exists():
             messagebox.showinfo("RAW 없음", "이 이미지는 RAW 원본 라벨이 없습니다.")
@@ -998,6 +1025,10 @@ class MainWindow:
         """저장 안 된 변경이 있으면 물어봅니다. 계속 진행해도 되면 True"""
         if not self.manager.dirty:
             return True
+        if self.final_blocked():
+            # 검수자는 이 이미지를 어차피 저장할 수 없으니 '버리고 이동'만 물어봅니다.
+            return messagebox.askyesno("저장 불가", "WORK 에 없는 이미지라 FINAL 에 저장할 수 없습니다.\n"
+                                       "변경 내용을 버리고 이동할까요?")
         if self.auto_save_var.get():
             return self.save_labels()
         role, _ = self.current_role()

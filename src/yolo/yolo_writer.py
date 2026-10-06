@@ -7,10 +7,12 @@ yolo_writer.py - YOLO TXT 저장 (Save) - 역할별 저장 위치
     - 역할(role)에 따라 저장 위치를 딱 하나로 정함
           작업자(worker)   → labels/Work  에만 저장
           검수자(reviewer) → labels/Final 에만 저장 (저장 후 Work 파일은 정리)
+    - FINAL 은 WORK 를 거친 파일만 갈 수 있음 (RAW → FINAL 직행 금지)
     - 예전 라벨을 RAW 로 '복사' (처음 한 번, 덮어쓰기 X)
 
 [안전 장치]
     RAW 는 원본 보관용입니다. write_yolo_file() 은 RAW 경로면 저장을 거부합니다.
+    검수자 저장은 Work 에 파일이 있을 때만 됩니다. (save_for_role 이 직접 막음)
 """
 
 import os
@@ -85,19 +87,33 @@ def save_for_role(role, image_path, boxes, img_w, img_h):
     """
     역할에 맞는 폴더에만 저장합니다. 저장한 경로를 돌려줍니다.
         작업자 → Work
-        검수자 → Final  (검수가 끝났으니 Work 에 남은 파일은 지워서 'Work → Final 이동'과 같은 결과)
+        검수자 → Final  (검수가 끝났으니 Work 파일은 지워서 'Work → Final 이동'과 같은 결과)
+
+    ⚠ FINAL 은 반드시 WORK 를 거쳐야 합니다.
+       Work 에 파일이 없는 이미지(RAW 만 있거나 라벨이 없는 이미지)는 검수자가 저장할 수 없습니다.
+       → 화면 코드에서 실수로 막는 걸 빠뜨려도, 여기서 한 번 더 막습니다. (이중 안전장치)
     """
     if role not in ROLE_STAGE:
         raise PermissionError("작업자 또는 검수자를 먼저 선택해야 저장할 수 있습니다.")
     stage = ROLE_STAGE[role]
+    work_path = get_label_path(image_path, STAGE_WORK)
+
+    if stage == STAGE_FINAL and not can_move_to_final(image_path):
+        raise PermissionError("WORK 에 없는 파일은 FINAL 로 옮길 수 없습니다.\n"
+                              "작업자가 먼저 WORK 에 저장해야 검수할 수 있습니다.\n"
+                              f"{work_path}")
+
     label_path = get_label_path(image_path, stage)
     write_yolo_file(label_path, boxes, img_w, img_h)
 
     if stage == STAGE_FINAL:
-        work_path = get_label_path(image_path, STAGE_WORK)
-        if work_path.exists():
-            os.remove(work_path)
+        os.remove(work_path)                # Work → Final 이동 완료
     return label_path
+
+
+def can_move_to_final(image_path):
+    """이 이미지를 FINAL 로 옮길 수 있나? = WORK 에 라벨 파일이 있나?"""
+    return get_label_path(image_path, STAGE_WORK).is_file()
 
 
 # ==================================================

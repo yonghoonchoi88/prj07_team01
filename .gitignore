@@ -36,3 +36,7 @@ runs/
 
 # Cache
 .cache/
+
+# 윈도우 → WSL 복사 때 생기는 꼬리표 파일
+*:Zone.Identifier
+*Zone.Identifier

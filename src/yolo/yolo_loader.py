@@ -1,25 +1,39 @@
 """
-yolo_loader.py - YOLO TXT 불러오기 (Load)
-=========================================
+yolo_loader.py - 작업 폴더 구성 + YOLO TXT 불러오기 (Load)
+=========================================================
 
 [담당]
-    - 폴더에서 이미지 목록 만들기
-    - 이미지 경로 → RAW / WORK / FINAL 라벨 경로 계산
+    - 선택한 폴더(예: data) 아래의 '모든' 이미지를 찾아 하나의 작업 목록으로 묶기
+    - 이미지마다 출처(source_dataset)와 원래 위치(original_split) 기록
+    - 통합 RAW / WORK / FINAL 라벨 경로 계산
     - 지금 어떤 단계의 라벨을 읽어야 하는지 결정 (WORK > FINAL > RAW)
     - YOLO TXT → BBox 목록 (원본 픽셀 좌표)
 
-[라벨 폴더 구조]
-    이물검출_학습데이터1/
-    ├─ images/train/a.jpg
-    └─ labels/
-       ├─ Raw/train/a.txt     ← 원본 (절대 수정 X)
-       ├─ Work/train/a.txt    ← 작업 중 (저장하면 여기에 생김)
-       └─ Final/train/a.txt   ← 검수 완료 (검수자가 저장하면 여기에만 저장)
+[폴더 구조] data 하나만 열면 됩니다.
+    data/                                   ← 이 폴더를 엽니다
+    ├─ 이물검출_학습데이터1/
+    │   ├─ images/train/a.jpg
+    │   └─ labels/train/a.txt               ← 원래 라벨 (읽기만, 처음 한 번 Raw 로 복사)
+    ├─ 이물검출_학습데이터2/
+    │   ├─ images/train/b.jpg
+    │   ├─ images/validation/c.jpg
+    │   └─ labels/...
+    └─ labels/                              ← 통합 작업 폴더 (프로그램이 만듦)
+        ├─ Raw/a.txt  b.txt  c.txt          ← 원본 보존 (저장 금지)
+        ├─ Work/                            ← 작업자 저장
+        ├─ Final/                           ← 검수 완료
+        └─ label.csv                        ← 통합 작업 기록 (source_dataset · original_split · qa_status 포함)
+
+    이물검출_학습데이터1 처럼 데이터셋 폴더 하나만 열어도 똑같이 동작합니다.
+    (그때는 그 폴더 안의 labels/Raw · Work · Final 이 통합 폴더가 됩니다)
 
 이 파일은 '읽기'만 합니다. 디스크에 쓰는 일은 yolo_writer.py 담당입니다.
 """
 
 import os
+import re
+from collections import Counter
+from dataclasses import dataclass
 from pathlib import Path
 
 # ---------- 라벨 단계(폴더 이름) ----------
@@ -35,6 +49,7 @@ STAGES = (STAGE_RAW, STAGE_WORK, STAGE_FINAL)
 LOAD_PRIORITY = (STAGE_WORK, STAGE_FINAL, STAGE_RAW)
 
 IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".bmp")
+LABELS_DIRNAME = "labels"
 
 
 # ==================================================
@@ -51,103 +66,172 @@ def yolo_to_bbox(x_center, y_center, width, height, img_w, img_h):
 
 
 # ==================================================
-# 2. 이미지 목록
+# 2. 이미지 한 장의 정보
 # ==================================================
 
-def collect_images(folder):
+@dataclass
+class ImageItem:
     """
-    선택한 폴더에서 이미지 목록을 만듭니다.
-        - 폴더 안에 images/ 가 있으면 → images/ 아래(train, val ...) 전부
-        - 선택한 폴더 이름이 images 면 → 그 아래 전부
-        - 둘 다 아니면 → 선택한 폴더 바로 아래 이미지만 (Day 1 방식)
-    돌려주는 값: (기준 폴더, 이미지 Path 목록)
+    이미지 한 장 = 실제 파일 위치 + 통합 폴더에서 쓰는 이름 + 출처 정보
+
+        path            : 실제 이미지 파일   (data/이물검출_학습데이터2/images/train/b.jpg)
+        key             : 통합 이름          (b.jpg)  ← Raw/Work/Final 의 TXT 이름, label.csv 의 file_name
+        source_dataset  : 어느 데이터셋에서 왔는지 (dataset2)
+        original_split  : 기존 train/validation 위치 (train)
+        dataset_dir     : 데이터셋 폴더      (data/이물검출_학습데이터2)
+        labels_dir      : 통합 labels 폴더   (data/labels)
     """
-    folder = Path(folder)
-    if (folder / "images").is_dir():
-        root = folder / "images"
-        candidates = root.rglob("*")
-    elif folder.name == "images":
-        root = folder
-        candidates = root.rglob("*")
-    else:
-        root = folder
-        candidates = root.iterdir()
-    paths = sorted(p for p in candidates
-                   if p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS)
-    return root, paths
+    path: Path
+    key: str
+    source_dataset: str
+    original_split: str
+    dataset_dir: Path
+    labels_dir: Path
+
+    @property
+    def label_name(self):
+        return Path(self.key).stem + ".txt"
+
+    def label_path(self, stage):
+        """통합 단계 폴더의 라벨 경로.  예) data/labels/Work/b.txt"""
+        if stage not in STAGES:
+            raise ValueError(f"알 수 없는 단계: {stage}")
+        return self.labels_dir / stage / self.label_name
+
+    def original_label_path(self):
+        """데이터셋에 원래 들어 있던 라벨.  예) data/이물검출_학습데이터2/labels/train/b.txt"""
+        return self.dataset_dir / LABELS_DIRNAME / self.original_split / (self.path.stem + ".txt")
+
+    def legacy_stage_path(self, stage):
+        """v2.x 때 데이터셋마다 따로 만들던 단계 폴더.  예) .../labels/Work/train/b.txt"""
+        return self.dataset_dir / LABELS_DIRNAME / stage / self.original_split / (self.path.stem + ".txt")
+
+    @property
+    def origin_text(self):
+        """화면 표시용.  예) dataset2 · train"""
+        return " · ".join(t for t in (self.source_dataset, self.original_split) if t)
+
+
+class Workspace:
+    """선택한 폴더 하나 = 작업 공간 하나 (이미지 목록 + 통합 labels 폴더)"""
+
+    def __init__(self, root, items, renamed):
+        self.root = Path(root)
+        self.labels_dir = self.root / LABELS_DIRNAME
+        self.items = items
+        self.renamed = renamed          # 파일명이 겹쳐서 이름 앞에 출처를 붙인 이미지 수
+
+    @property
+    def csv_path(self):
+        return self.labels_dir / "label.csv"
+
+    @property
+    def datasets(self):
+        return sorted({it.source_dataset for it in self.items})
 
 
 # ==================================================
-# 3. 라벨 경로 (RAW / WORK / FINAL)
+# 3. 폴더 → 작업 공간 만들기
 # ==================================================
 
-def split_label_location(image_path):
+def dataset_label(folder_name):
+    """'이물검출_학습데이터2' → 'dataset2'  (끝에 숫자가 없으면 폴더 이름 그대로)"""
+    m = re.search(r"(\d+)\s*$", folder_name)
+    return f"dataset{int(m.group(1))}" if m else folder_name
+
+
+def build_workspace(folder):
     """
-    이미지 경로 → (labels 폴더, labels 아래 상대 경로)
-
-        .../images/train/a.jpg  →  (.../labels,           train/a.txt)
-        .../my_images/a.jpg     →  (.../my_images/labels, a.txt)        ← Day 1 방식
+    선택한 폴더 아래(하위 폴더 전부)의 이미지를 모아 작업 공간을 만듭니다.
+    labels 폴더 안은 이미지로 보지 않습니다.
     """
-    p = Path(image_path)
-    parts = list(p.parts)
-    if "images" in parts[:-1]:
-        idx = len(parts) - 1 - parts[::-1].index("images")    # 가장 마지막 'images'
-        labels_root = Path(*parts[:idx]) / "labels"
-        relative = Path(*parts[idx + 1:]).with_suffix(".txt")
-    else:
-        labels_root = p.parent / "labels"
-        relative = Path(p.stem + ".txt")
-    return labels_root, relative
+    root = Path(folder)
+    labels_dir = root / LABELS_DIRNAME
+    found = []
+    for p in sorted(root.rglob("*")):
+        if not (p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS):
+            continue
+        rel = p.relative_to(root).parts
+        if LABELS_DIRNAME in rel[:-1]:
+            continue
+
+        if "images" in rel[:-1]:
+            # .../<데이터셋>/images/<split>/a.jpg
+            idx = len(rel) - 2 - rel[:-1][::-1].index("images")
+            ds_parts, split_parts = rel[:idx], rel[idx + 1:-1]
+        else:
+            # images 폴더가 없으면 이미지가 있는 폴더 자체를 데이터셋으로 봅니다. (Day 1 방식)
+            ds_parts, split_parts = rel[:-1], ()
+        dataset_dir = root.joinpath(*ds_parts) if ds_parts else root
+        source = dataset_label(ds_parts[-1] if ds_parts else root.name)
+        found.append((p, source, "/".join(split_parts), dataset_dir))
+
+    # 통합 폴더에 모이면 파일명이 겹칠 수 있으니 확인 → 겹치는 것만 앞에 출처를 붙입니다.
+    stem_count = Counter(p.stem for p, *_ in found)
+    items, used, renamed = [], set(), 0
+    for p, source, split, dataset_dir in found:
+        key = p.name
+        if stem_count[p.stem] > 1:
+            prefix = "_".join(t for t in (source, split.replace("/", "_")) if t)
+            key = f"{prefix}__{p.name}"
+            renamed += 1
+        base, n = key, 2
+        while Path(key).stem in used:                  # 그래도 겹치면 번호를 붙임
+            key = f"{Path(base).stem}_{n}{Path(base).suffix}"
+            n += 1
+        used.add(Path(key).stem)
+        items.append(ImageItem(p, key, source, split, dataset_dir, labels_dir))
+    return Workspace(root, items, renamed)
 
 
-def get_label_path(image_path, stage):
-    """이미지 경로 + 단계 → 라벨 TXT 경로.  예) labels/Work/train/a.txt"""
-    if stage not in STAGES:
-        raise ValueError(f"알 수 없는 단계: {stage}")
-    labels_root, relative = split_label_location(image_path)
-    return labels_root / stage / relative
+# ==================================================
+# 4. 라벨 찾기
+# ==================================================
 
-
-def get_legacy_label_path(image_path):
-    """단계 폴더를 쓰기 전(Day 1~2)의 라벨 위치.  예) labels/train/a.txt"""
-    labels_root, relative = split_label_location(image_path)
-    return labels_root / relative
-
-
-def get_label_stages(image_path):
+def get_label_stages(item):
     """이 이미지에 대해 실제로 존재하는 단계 목록.  예) {'Raw', 'Work'}"""
-    return {s for s in STAGES if get_label_path(image_path, s).exists()}
+    return {s for s in STAGES if item.label_path(s).exists()}
 
 
-def find_label_to_load(image_path):
+def find_label_to_load(item):
     """
     화면에 띄울 라벨을 고릅니다. (WORK > FINAL > RAW)
     돌려주는 값: (단계, 경로)  /  라벨이 하나도 없으면 (None, None)
     """
     for stage in LOAD_PRIORITY:
-        path = get_label_path(image_path, stage)
+        path = item.label_path(stage)
         if path.exists():
             return stage, path
     return None, None
 
 
-def find_legacy_labels(image_paths):
+def find_legacy_imports(items):
     """
-    예전 위치(labels/train/a.txt)에 라벨이 있는데 Raw 에는 아직 없는 것들을 찾습니다.
-    → 처음 한 번 Raw 로 '복사'해서 원본으로 보관하기 위함
-    돌려주는 값: [(예전 경로, Raw 경로), ...]
+    통합 폴더로 처음 한 번 '복사'해 올 라벨들을 찾습니다. (원래 파일은 그대로)
+        Raw   : 데이터셋의 원래 라벨 (labels/train/a.txt) 또는 v2.x 의 labels/Raw/train/a.txt
+        Work  : v2.x 때 데이터셋마다 만들던 labels/Work/train/a.txt
+        Final : v2.x 때 데이터셋마다 만들던 labels/Final/train/a.txt
+    돌려주는 값: [(복사할 파일, 통합 경로, 단계), ...]
     """
     pairs = []
-    for img in image_paths:
-        legacy = get_legacy_label_path(img)
-        raw = get_label_path(img, STAGE_RAW)
-        if legacy.is_file() and not raw.exists():
-            pairs.append((legacy, raw))
+    for it in items:
+        raw_dst = it.label_path(STAGE_RAW)
+        if not raw_dst.exists():
+            for src in (it.original_label_path(), it.legacy_stage_path(STAGE_RAW)):
+                if src.is_file() and src != raw_dst:
+                    pairs.append((src, raw_dst, STAGE_RAW))
+                    break
+        # Work / Final 은 통합 폴더에 이 이미지 작업이 하나도 없을 때만 가져옵니다.
+        if not (it.label_path(STAGE_WORK).exists() or it.label_path(STAGE_FINAL).exists()):
+            for stage in (STAGE_WORK, STAGE_FINAL):
+                src, dst = it.legacy_stage_path(stage), it.label_path(stage)
+                if src.is_file() and src != dst:
+                    pairs.append((src, dst, stage))
     return pairs
 
 
 # ==================================================
-# 4. YOLO TXT 읽기
+# 5. YOLO TXT 읽기
 # ==================================================
 
 def read_yolo_file(label_path, img_w, img_h):

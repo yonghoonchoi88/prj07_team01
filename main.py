@@ -1,5 +1,5 @@
 """
-조각김치 이물검출 라벨링 프로그램 v2.1 - 프로그램 시작
+조각김치 이물검출 라벨링 프로그램 v3.0 - 프로그램 시작
 =====================================================
 
 [실행]
@@ -13,7 +13,8 @@
 
 [라벨 흐름]  labels/Raw (원본) ─작업자 저장─▶ labels/Work ─검수자 저장─▶ labels/Final
              (RAW → FINAL 직행 금지: WORK 에 있는 파일만 FINAL 로 갈 수 있음)
-[작업 기록]  저장할 때마다 labels/label.csv 에 한 줄씩 기록
+[작업 기록]  저장할 때마다 labels/label.csv 에 한 줄씩 기록 (source_dataset · original_split · qa_status 포함)
+[작업 폴더]  data 폴더 하나만 열면 하위 데이터셋 이미지를 모두 모아 data/labels 하나로 통합
 """
 
 import sys

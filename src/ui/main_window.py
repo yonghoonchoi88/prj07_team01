@@ -19,6 +19,7 @@ main_window.py - 화면 구성과 버튼 · 이벤트 처리
 [작업 기록]  저장할 때마다 labels/label.csv 에 파일명 · 일시 · work/final · 이름 · scene_type
 """
 
+import csv
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
@@ -28,15 +29,15 @@ from src.bbox.bbox_manager import BBoxManager
 from src.records.label_csv import LabelLog
 from src.ui.canvas import ImageCanvas
 from src.validation.validator import LabelValidator
-from src.yolo.yolo_loader import (STAGE_FINAL, STAGE_RAW, STAGE_WORK, collect_images,
-                                  find_label_to_load, find_legacy_labels, get_label_path,
-                                  get_label_stages, read_yolo_file, split_label_location,
+from src.yolo.yolo_loader import (STAGE_FINAL, STAGE_RAW, STAGE_WORK, build_workspace,
+                                  find_label_to_load, find_legacy_imports,
+                                  get_label_stages, read_yolo_file,
                                   yolo_to_bbox)
 from src.yolo.yolo_writer import (ROLE_REVIEWER, ROLE_STAGE, ROLE_WORKER, bbox_to_yolo,
-                                  can_move_to_final, copy_to_raw, format_yolo_lines,
+                                  can_move_to_final, copy_into_workspace, format_yolo_lines,
                                   save_for_role)
 
-APP_TITLE = "조각김치 이물검출 라벨링 프로그램 v2.1"
+APP_TITLE = "조각김치 이물검출 라벨링 프로그램 v3.0"
 LABEL_CSV_NAME = "label.csv"         # labels/ 폴더 안에 생기는 작업 기록 파일
 
 # 역할 → 화면 표시 이름 / CSV 의 work_type
@@ -89,8 +90,10 @@ class MainWindow:
         self.root.configure(bg=BG)
 
         # ---------- 폴더 / 이미지 ----------
-        self.image_root = None       # 이미지 목록의 기준 폴더
-        self.image_paths = []        # Path 목록
+        self.workspace = None        # 선택한 폴더 (data) 전체 = 작업 공간
+        self.image_root = None       # 선택한 폴더
+        self.items = []              # ImageItem 목록 (경로 · 통합 이름 · 출처 · split)
+        self.image_paths = []        # 이미지 Path 목록 (items 와 같은 순서)
         self.stage_cache = []        # 이미지별 '가장 앞선 단계' (목록 색칠용)
         self.index = 0
         self.img_w = 0
@@ -271,7 +274,7 @@ class MainWindow:
         wrap.pack(fill="both", expand=True)
 
         # exportselection=False: 다른 Listbox를 클릭해도 이 목록의 선택이 풀리지 않게!
-        self.image_list = tk.Listbox(wrap, width=30, exportselection=False,
+        self.image_list = tk.Listbox(wrap, width=36, exportselection=False,
                                      font=(FONT, 9), activestyle="none",
                                      selectbackground=SELECT_BG, selectforeground=PRIMARY_DARK,
                                      bd=1, relief="solid", highlightthickness=0)
@@ -313,6 +316,9 @@ class MainWindow:
         self.name_label.pack(side="left")
         self.count_label = tk.Label(header, text="", font=(FONT, 11, "bold"), bg=PANEL, fg=TEXT)
         self.count_label.pack(side="left", padx=18)
+        self.origin_label = tk.Label(header, text="", font=(FONT, 9, "bold"), bg="#EEF2FF",
+                                     fg="#4338CA", padx=8, pady=1)
+        self.origin_label.pack(side="left")
         self.zoom_label = tk.Label(header, text="", font=(FONT, 9), bg=PANEL, fg=MUTED)
         self.zoom_label.pack(side="right")
 
@@ -489,57 +495,78 @@ class MainWindow:
     def open_folder(self):
         if not self.confirm_leave():
             return
-        folder = filedialog.askdirectory(title="프로젝트 데이터 폴더 또는 이미지 폴더 선택")
+        folder = filedialog.askdirectory(title="data 폴더(여러 데이터셋을 담은 폴더) 또는 데이터셋 폴더 선택")
         if folder:                            # 취소하면 빈 문자열
             self.load_folder(folder)
 
     def load_folder(self, folder):
-        image_root, paths = collect_images(folder)
-        if not paths:
-            messagebox.showwarning("이미지 없음", "선택한 폴더에 이미지 파일이 없습니다.")
+        """
+        선택한 폴더 아래의 모든 이미지를 하나의 작업 공간으로 묶습니다.
+            data/이물검출_학습데이터1/images/...  ┐
+            data/이물검출_학습데이터2/images/...  ┴→ data/labels/Raw · Work · Final · label.csv
+        """
+        ws = build_workspace(folder)
+        if not ws.items:
+            messagebox.showwarning("이미지 없음", "선택한 폴더(하위 폴더 포함)에 이미지 파일이 없습니다.")
             return
 
-        # 예전 위치(labels/train/a.txt)의 라벨 → RAW 로 한 번만 복사해서 원본 보관
-        legacy = find_legacy_labels(paths)
-        if legacy and messagebox.askyesno(
-                "RAW 원본 보관",
-                f"단계 폴더(Raw/Work/Final) 밖에 있는 기존 라벨 TXT {len(legacy)}개를 찾았습니다.\n\n"
-                "labels/Raw 로 복사해서 원본으로 보관할까요?\n"
-                "(기존 파일은 그대로 두고, Raw 에 이미 있는 파일은 덮어쓰지 않습니다)"):
-            copied = copy_to_raw(legacy)
-            messagebox.showinfo("RAW 원본 보관", f"{copied}개를 labels/Raw 로 복사했습니다.")
+        # 데이터셋의 원래 라벨 / v2.x 단계 폴더 → 통합 폴더로 한 번만 복사
+        legacy = find_legacy_imports(ws.items)
+        if legacy:
+            count = {st: sum(1 for *_, s2 in legacy if s2 == st) for st in (STAGE_RAW, STAGE_WORK, STAGE_FINAL)}
+            detail = " · ".join(f"{st} {n}개" for st, n in count.items() if n)
+            if messagebox.askyesno(
+                    "통합 폴더로 복사",
+                    f"데이터셋 폴더에 있는 기존 라벨 TXT {len(legacy)}개를 찾았습니다.\n({detail})\n\n"
+                    f"통합 폴더 {ws.labels_dir.name}/Raw · Work · Final 로 복사할까요?\n"
+                    "(원래 파일은 그대로 두고, 통합 폴더에 이미 있는 파일은 덮어쓰지 않습니다)"):
+                copied = copy_into_workspace(legacy)
+                messagebox.showinfo("통합 폴더로 복사", "복사 완료: " + (
+                    " · ".join(f"{st} {n}개" for st, n in copied.items()) or "새로 복사한 파일 없음"))
 
-        # labels/label.csv 준비 (없으면 머리줄만 있는 파일을 새로 만듭니다)
-        labels_root, _ = split_label_location(paths[0])
+        # 통합 label.csv 준비 (없으면 새로 만들고, 예전 형식이면 백업 후 새 형식으로 변환)
         try:
-            self.label_log = LabelLog(labels_root / LABEL_CSV_NAME)
+            self.label_log = LabelLog(ws.csv_path)
+            self.label_log.backfill_origin({it.key: (it.source_dataset, it.original_split) for it in ws.items})
             self.scene_records = self.label_log.latest_scene_types()
-        except (OSError, ValueError) as e:
+            if self.label_log.migrated_from:
+                messagebox.showinfo("label.csv", "예전 형식의 label.csv 를 새 형식으로 바꿨습니다.\n"
+                                    "(source_dataset · original_split · qa_status 컬럼 추가)\n\n"
+                                    f"원래 파일 백업: {self.label_log.migrated_from.name}")
+        except (OSError, ValueError, csv.Error) as e:
             self.label_log, self.scene_records = None, {}
             messagebox.showwarning("label.csv", f"작업 기록 파일을 열 수 없습니다.\n{e}")
 
-        self.image_root = image_root
-        self.image_paths = paths
-        self.stage_cache = [None] * len(paths)
+        self.workspace = ws
+        self.image_root = ws.root
+        self.items = ws.items
+        self.image_paths = [it.path for it in ws.items]
+        self.stage_cache = [None] * len(self.items)
         self.index = 0
         self.manager.dirty = False
 
-        # 하위 폴더(train/val)가 여러 개면 'train/xxx.jpg'처럼, 아니면 파일명만 표시
-        multi_dirs = len({p.parent for p in paths}) > 1
-        self.list_names = [p.relative_to(image_root).as_posix() if multi_dirs else p.name
-                           for p in paths]
+        # 데이터셋 · split 이 여러 개면 '[dataset2 · train] a.jpg' 처럼 출처를 앞에 표시
+        multi = len({(it.source_dataset, it.original_split) for it in self.items}) > 1
+        short = {"validation": "val"}           # 목록 폭이 좁아서 목록에서만 줄여 씀 (CSV 는 원래 이름)
+        self.list_names = [
+            f"[{' · '.join(short.get(t, t) for t in (it.source_dataset, it.original_split) if t)}] {it.key}"
+            if multi and it.origin_text else it.key
+            for it in self.items]
         self.image_list.delete(0, "end")
-        for i in range(len(paths)):
+        for i in range(len(self.items)):
             self.image_list.insert("end", "")
             self.update_list_item(i)
 
-        self.left_group.config(text=f" 이미지 목록 ({len(paths)}) ")
+        self.left_group.config(text=f" 이미지 목록 ({len(self.items)}) ")
         self.update_progress()
         self.load_image()
+        if ws.renamed:
+            messagebox.showinfo("파일명 중복", f"서로 다른 데이터셋에 같은 이름의 이미지가 {ws.renamed}개 있어서\n"
+                                "통합 폴더에서는 이름 앞에 출처를 붙였습니다.\n예) dataset2_train__a.jpg")
 
     def update_list_item(self, i):
         """이미지 목록 한 줄을 단계에 맞게 기호 + 색으로 표시 (FINAL ✔ / WORK ✎ / RAW ○)"""
-        stages = get_label_stages(self.image_paths[i])
+        stages = get_label_stages(self.items[i])
         # 화면에 띄우는 순서와 같게: WORK(다시 고치는 중) > FINAL > RAW
         stage = next((s for s in (STAGE_WORK, STAGE_FINAL, STAGE_RAW) if s in stages), None)
         self.stage_cache[i] = stage
@@ -570,7 +597,7 @@ class MainWindow:
         self.img_w, self.img_h = pil_image.size
 
         # WORK > FINAL > RAW 순서로 라벨 자동 로드
-        stage, label_path = find_label_to_load(path)
+        stage, label_path = find_label_to_load(self.items[self.index])
         boxes, bad_lines = read_yolo_file(label_path, self.img_w, self.img_h)
         self.manager.load(boxes)
         self.loaded_stage = stage
@@ -582,7 +609,7 @@ class MainWindow:
 
         where = {STAGE_WORK: "WORK (작업 중)", STAGE_FINAL: "FINAL (검수 완료)",
                  STAGE_RAW: "RAW (원본)", None: "라벨 없음 → 새로 작성"}[stage]
-        msg = (f"{path.name} 열기  |  원본 {self.img_w}x{self.img_h}  |  "
+        msg = (f"{path.name} 열기  |  {self.items[self.index].origin_text}  |  원본 {self.img_w}x{self.img_h}  |  "
                f"라벨: {where}  |  BBox {len(boxes)}개  |  "
                f"scene_type: {self.loaded_scene or '미지정'}")
         if bad_lines:
@@ -595,12 +622,12 @@ class MainWindow:
         """검수자인데 지금 이미지가 WORK 에 없으면 True (RAW → FINAL 직행 금지)"""
         role, _ = self.current_role()
         return (role == ROLE_REVIEWER and bool(self.image_paths)
-                and not can_move_to_final(self.image_paths[self.index]))
+                and not can_move_to_final(self.items[self.index]))
 
     def file_key(self, index=None):
-        """label.csv 에 쓰는 파일명. 이미지 기준 폴더에서의 상대 경로 (예: train/a.jpg)"""
+        """label.csv 의 file_name = 통합 폴더에서 쓰는 이름 (보통 이미지 파일명, 예: a.jpg)"""
         i = self.index if index is None else index
-        return self.image_paths[i].relative_to(self.image_root).as_posix()
+        return self.items[i].key
 
     def load_scene(self):
         """label.csv 에 남아 있는 이 이미지의 마지막 scene_type 을 화면에 표시"""
@@ -632,6 +659,7 @@ class MainWindow:
         self.name_label.config(text=self.image_paths[self.index].name + star,
                                fg=DANGER if dirty else TEXT)
         self.count_label.config(text=f"( {self.index + 1} / {len(self.image_paths)} )")
+        self.origin_label.config(text=self.items[self.index].origin_text)
         _, color, text = STAGE_STYLE[self.loaded_stage]
         self.stage_badge.config(text=text, bg=color if self.loaded_stage != STAGE_RAW else MUTED)
 
@@ -865,7 +893,7 @@ class MainWindow:
 
     def short_path(self, path):
         try:
-            return path.relative_to(self.image_root.parent).as_posix()
+            return path.relative_to(self.image_root).as_posix()
         except ValueError:
             return path.name
 
@@ -926,10 +954,10 @@ class MainWindow:
         if not self.check_before_save(role, name, scene):                      # ①
             return False
 
-        image_path = self.image_paths[self.index]
+        item = self.items[self.index]
         boxes = self.manager.boxes
         try:
-            label_path = save_for_role(role, image_path, boxes, self.img_w, self.img_h)   # ②
+            label_path = save_for_role(role, item, boxes, self.img_w, self.img_h)   # ②
         except OSError as e:                  # PermissionError 도 OSError 의 한 종류
             messagebox.showerror("저장 실패", str(e))
             return False
@@ -963,7 +991,9 @@ class MainWindow:
         if self.label_log is None:
             return "⚠ label.csv 없음"
         try:
-            self.label_log.append(self.file_key(), ROLE_WORK_TYPE[role], name, scene)
+            it = self.items[self.index]
+            row = self.label_log.append(self.file_key(), ROLE_WORK_TYPE[role], name, scene,
+                                        it.source_dataset, it.original_split)
         except OSError as e:
             # 엑셀로 label.csv 를 열어 두면 윈도우가 파일을 잠가서 여기로 옵니다.
             messagebox.showwarning("label.csv 기록 실패",
@@ -972,7 +1002,7 @@ class MainWindow:
             return "⚠ label.csv 기록 실패"
         self.scene_records[self.file_key()] = scene
         self.loaded_scene = scene
-        return "label.csv 기록 ✔"
+        return f"label.csv 기록 ✔ (qa_status: {row['qa_status']})"
 
     def save_and_next(self):
         if self.save_labels():
@@ -989,7 +1019,7 @@ class MainWindow:
         if self.manager.dirty and not messagebox.askyesno(
                 "다시 불러오기", "저장하지 않은 변경 내용이 사라집니다. 계속할까요?"):
             return
-        stage, label_path = find_label_to_load(self.image_paths[self.index])
+        stage, label_path = find_label_to_load(self.items[self.index])
         boxes, bad_lines = read_yolo_file(label_path, self.img_w, self.img_h)
         self.manager.load(boxes)
         self.loaded_stage = stage
@@ -1007,7 +1037,7 @@ class MainWindow:
             messagebox.showinfo("RAW 되돌리기", "RAW 되돌리기는 작업자만 할 수 있습니다.\n"
                                 "(RAW 내용은 WORK 를 거쳐야 FINAL 로 갈 수 있습니다)")
             return
-        raw_path = get_label_path(self.image_paths[self.index], STAGE_RAW)
+        raw_path = self.items[self.index].label_path(STAGE_RAW)
         if not raw_path.exists():
             messagebox.showinfo("RAW 없음", "이 이미지는 RAW 원본 라벨이 없습니다.")
             return

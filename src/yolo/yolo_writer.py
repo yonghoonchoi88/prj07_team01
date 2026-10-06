@@ -1,0 +1,104 @@
+"""
+yolo_writer.py - YOLO TXT 저장 (Save) + 단계 이동
+================================================
+
+[담당]
+    - BBox 목록 → YOLO TXT (항상 WORK 폴더에 저장)
+    - 검수 완료: WORK → FINAL 로 '이동'
+    - 예전 라벨을 RAW 로 '복사' (처음 한 번, 덮어쓰기 X)
+
+[안전 장치]
+    RAW 는 원본 보관용입니다. write_yolo_file() 은 RAW 경로면 저장을 거부합니다.
+"""
+
+import os
+import shutil
+from pathlib import Path
+
+from src.yolo.yolo_loader import STAGE_FINAL, STAGE_RAW, STAGE_WORK, get_label_path
+
+
+# ==================================================
+# 1. 좌표 변환 (픽셀 → YOLO)
+# ==================================================
+
+def bbox_to_yolo(x1, y1, x2, y2, img_w, img_h):
+    """픽셀 좌표 (x1, y1, x2, y2) → YOLO (x_center, y_center, width, height), 모두 0~1"""
+    x_center = (x1 + x2) / 2 / img_w
+    y_center = (y1 + y2) / 2 / img_h
+    width = (x2 - x1) / img_w
+    height = (y2 - y1) / img_h
+    return x_center, y_center, width, height
+
+
+# ==================================================
+# 2. TXT 쓰기
+# ==================================================
+
+def is_raw_path(path):
+    """경로 안에 'labels/Raw' 가 들어 있으면 원본 폴더로 봅니다."""
+    parts = Path(path).parts
+    return any(parts[i] == "labels" and parts[i + 1] == STAGE_RAW for i in range(len(parts) - 1))
+
+
+def write_yolo_file(label_path, boxes, img_w, img_h):
+    """
+    BBox 목록 → YOLO TXT. BBox 가 0개면 빈 파일(= '객체 없음' 검수 완료)이 됩니다.
+
+    임시 파일에 먼저 다 쓴 다음 한 번에 바꿔치기(os.replace) 합니다.
+    → 저장 도중 프로그램이 꺼져도 반쯤 쓰다 만 TXT 가 남지 않습니다.
+    """
+    if is_raw_path(label_path):
+        raise PermissionError(f"RAW 폴더는 원본 보관용이라 저장할 수 없습니다.\n{label_path}")
+
+    label_path = Path(label_path)
+    label_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = label_path.with_suffix(".txt.tmp")
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        for b in boxes:
+            xc, yc, w, h = bbox_to_yolo(b["x1"], b["y1"], b["x2"], b["y2"], img_w, img_h)
+            f.write(f"{b['cls']} {xc:.6f} {yc:.6f} {w:.6f} {h:.6f}\n")
+    os.replace(tmp_path, label_path)
+
+
+def save_to_work(image_path, boxes, img_w, img_h):
+    """저장 버튼 = 항상 WORK 에 저장. 저장한 경로를 돌려줍니다."""
+    work_path = get_label_path(image_path, STAGE_WORK)
+    write_yolo_file(work_path, boxes, img_w, img_h)
+    return work_path
+
+
+# ==================================================
+# 3. 단계 이동 / 복사
+# ==================================================
+
+def move_work_to_final(image_path):
+    """
+    검수 완료: WORK 의 TXT 를 FINAL 로 '이동'합니다. (WORK 에는 더 이상 남지 않음)
+    FINAL 에 같은 파일이 있으면 새 내용으로 교체합니다. (다시 검수한 경우)
+    """
+    work_path = get_label_path(image_path, STAGE_WORK)
+    final_path = get_label_path(image_path, STAGE_FINAL)
+    if not work_path.exists():
+        raise FileNotFoundError(f"WORK 에 라벨이 없습니다.\n{work_path}")
+    final_path.parent.mkdir(parents=True, exist_ok=True)
+    os.replace(work_path, final_path)          # 같은 드라이브 안에서는 '이동' = 이름 바꾸기
+    return final_path
+
+
+def copy_to_raw(pairs):
+    """
+    [(예전 경로, Raw 경로), ...] 를 받아 Raw 로 '복사'합니다.
+    - 원본 파일은 그대로 둡니다. (move 가 아니라 copy)
+    - Raw 에 이미 파일이 있으면 절대 덮어쓰지 않습니다.
+    돌려주는 값: 실제로 복사한 개수
+    """
+    copied = 0
+    for src, dst in pairs:
+        dst = Path(dst)
+        if dst.exists():
+            continue
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst)                 # copy2: 수정 시각 같은 정보도 같이 복사
+        copied += 1
+    return copied

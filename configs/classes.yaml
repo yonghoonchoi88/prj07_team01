@@ -1,0 +1,37 @@
+# ==================================================
+# 조각김치 이물검출 라벨링 프로그램 - Class 설정
+# ==================================================
+# 이 파일은 문서가 아니라 프로그램이 실제로 읽어 사용하는 설정 파일입니다.
+#   - 숫자(0, 1, 2 ...) = YOLO class_id  →  0부터 빈칸 없이 이어져야 합니다.
+#   - name    : 화면에 보이는 이름
+#   - enabled : false 면 선택할 수 없고, 이 Class 가 남아 있으면 FINAL 로 넘어가지 않습니다.
+#   - color   : (선택) "#RRGGBB". 안 쓰면 프로그램 기본 색을 씁니다.
+
+classes:
+  0:
+    name: "나뭇잎·종이류"
+    enabled: true
+
+  1:
+    name: "플라스틱류·돌·금속류"
+    enabled: true
+
+  2:
+    name: "나뭇가지류"
+    enabled: true
+
+  3:
+    name: "벌레류"
+    enabled: true
+
+  4:
+    name: "고무장갑"
+    enabled: false
+
+  5:
+    name: "병해·갈변"
+    enabled: true
+
+  6:
+    name: "파·고추"
+    enabled: true

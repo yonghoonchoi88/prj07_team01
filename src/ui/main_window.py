@@ -9,8 +9,14 @@ main_window.py - 화면 구성과 버튼 · 이벤트 처리
     이미지/마우스 그리기 → src/ui/canvas.py
     TXT 읽기 / 쓰기     → src/yolo/yolo_loader.py, yolo_writer.py
     FINAL 전 검사       → src/validation/validator.py
+    작업 기록(CSV)      → src/records/label_csv.py
 
-[라벨 흐름]  RAW(원본, 읽기 전용) ─저장─▶ WORK(작업 중) ─완료─▶ FINAL(검수 완료)
+[역할]
+    작업자 : 저장하면 labels/Work  에만 저장 (Final 저장 불가)
+    검수자 : 저장하면 labels/Final 에만 저장 (검사 통과해야 저장, Work 저장 불가)
+
+[라벨 흐름]  RAW(원본, 읽기 전용) ─작업자─▶ WORK(작업 중) ─검수자─▶ FINAL(검수 완료)
+[작업 기록]  저장할 때마다 labels/label.csv 에 파일명 · 일시 · work/final · 이름 · scene_type
 """
 
 import tkinter as tk
@@ -19,14 +25,22 @@ from tkinter import filedialog, messagebox, ttk
 from PIL import Image
 
 from src.bbox.bbox_manager import BBoxManager
+from src.records.label_csv import LabelLog
 from src.ui.canvas import ImageCanvas
 from src.validation.validator import LabelValidator
 from src.yolo.yolo_loader import (STAGE_FINAL, STAGE_RAW, STAGE_WORK, collect_images,
                                   find_label_to_load, find_legacy_labels, get_label_path,
-                                  get_label_stages, read_yolo_file, yolo_to_bbox)
-from src.yolo.yolo_writer import bbox_to_yolo, copy_to_raw, move_work_to_final, save_to_work
+                                  get_label_stages, read_yolo_file, split_label_location,
+                                  yolo_to_bbox)
+from src.yolo.yolo_writer import (ROLE_REVIEWER, ROLE_STAGE, ROLE_WORKER, bbox_to_yolo,
+                                  copy_to_raw, format_yolo_lines, save_for_role)
 
-APP_TITLE = "조각김치 이물검출 라벨링 프로그램 v2.0"
+APP_TITLE = "조각김치 이물검출 라벨링 프로그램 v3.0"
+LABEL_CSV_NAME = "label.csv"         # labels/ 폴더 안에 생기는 작업 기록 파일
+
+# 역할 → 화면 표시 이름 / CSV 의 work_type
+ROLE_TEXT = {ROLE_WORKER: "작업자", ROLE_REVIEWER: "검수자"}
+ROLE_WORK_TYPE = {ROLE_WORKER: "work", ROLE_REVIEWER: "final"}
 
 # ---------- 디자인 ----------
 FONT = "Malgun Gothic"     # 윈도우 기본 한글 폰트 (없으면 tkinter가 알아서 대체)
@@ -40,7 +54,7 @@ PRIMARY = "#1D6FE8"        # 파란 버튼 (모드 강조, 저장 후 다음)
 PRIMARY_DARK = "#1557BD"
 SUCCESS = "#16A34A"        # 초록 버튼 (저장)
 SUCCESS_DARK = "#11823B"
-FINAL_BG = "#7C3AED"       # 보라 버튼 (완료 → FINAL)
+FINAL_BG = "#7C3AED"       # 보라 버튼 (검수자 저장 → FINAL)
 FINAL_DARK = "#6D28D9"
 DANGER = "#DC2626"         # 삭제 / 저장 안 됨
 SELECT_BG = "#D6E6FF"      # 목록 선택 배경
@@ -56,13 +70,18 @@ STAGE_STYLE = {
 
 class MainWindow:
     """
-    classes: main.py 가 classes.yaml 에서 만든 목록
-             [{"id": 0, "name": "나뭇잎·종이류", "enabled": True, "color": "#F59E0B"}, ...]
+    config: main.py 가 classes.yaml 에서 만든 설정
+        classes     : [{"id": 0, "name": "나뭇잎·종이류", "enabled": True, "color": "#F59E0B"}, ...]
+        members     : ["최용훈", "박건", "이승훈", "김하민", "심준형"]
+        scene_types : {"kimchi_with_target": "김치와 이물질", ...}
     """
 
-    def __init__(self, root, classes):
+    def __init__(self, root, config):
         self.root = root
-        self.classes = classes
+        self.classes = config["classes"]
+        self.members = config["members"]
+        self.scene_types = config["scene_types"]
+        classes = self.classes
         self.root.title(APP_TITLE)
         self.root.geometry("1360x880")
         self.root.minsize(1150, 740)
@@ -79,11 +98,19 @@ class MainWindow:
 
         # ---------- 라벨 ----------
         self.manager = BBoxManager()
-        self.validator = LabelValidator(classes)
+        self.validator = LabelValidator(classes, self.scene_types)
         self.current_class = next(c["id"] for c in classes if c["enabled"])
+
+        # ---------- 작업 기록 (label.csv) / scene_type ----------
+        self.label_log = None        # 폴더를 열면 labels/label.csv 로 만들어집니다.
+        self.scene_records = {}      # {파일명: 가장 최근 scene_type}  (CSV 에서 읽어 옴)
+        self.loaded_scene = ""       # 이미지를 열 때의 scene_type (바뀌었는지 비교용)
 
         self.mode_var = tk.StringVar(value="select")
         self.auto_save_var = tk.BooleanVar(value=False)
+        self.role_var = tk.StringVar(value="")      # "worker" / "reviewer" - 둘 중 하나만
+        self.name_var = tk.StringVar(value="")      # 5명 중 한 명
+        self.scene_var = tk.StringVar(value="")     # scene_type
 
         self.setup_style()
         self.build_menu()
@@ -91,7 +118,9 @@ class MainWindow:
         self.bind_events()
         self.set_mode("select")      # README 규칙: 'BBox 는 새로 치지 않고 기존 박스를 수정'
         self.set_current_class(self.current_class, apply_to_selected=False)
+        self.update_role_ui()
         self.canvas.render()
+        self.set_status("① 왼쪽 위에서 작업자/검수자와 이름을 고르고  ② 파일 > 폴더 열기 (Ctrl+O)로 시작하세요.")
 
     # ==================================================
     # 0. Class 도우미
@@ -129,10 +158,9 @@ class MainWindow:
         file_menu = tk.Menu(menubar, tearoff=0)
         file_menu.add_command(label="폴더 열기...", accelerator="Ctrl+O", command=self.open_folder)
         file_menu.add_separator()
-        file_menu.add_command(label="저장 (→ WORK)", accelerator="Ctrl+S", command=self.save_labels)
+        file_menu.add_command(label="저장 (작업자 → WORK / 검수자 → FINAL)", accelerator="Ctrl+S",
+                              command=self.save_labels)
         file_menu.add_command(label="저장 후 다음", accelerator="Ctrl+Enter", command=self.save_and_next)
-        file_menu.add_command(label="검수 완료 (WORK → FINAL)", accelerator="Ctrl+Shift+Enter",
-                              command=self.complete_to_final)
         file_menu.add_separator()
         file_menu.add_command(label="라벨 다시 불러오기", accelerator="F5", command=self.reload_labels)
         file_menu.add_command(label="RAW 원본으로 되돌리기", command=self.restore_raw)
@@ -159,13 +187,13 @@ class MainWindow:
         tool_menu.add_command(label="선택 BBox 삭제", accelerator="Delete", command=self.delete_selected)
         tool_menu.add_command(label="되돌리기", accelerator="Ctrl+Z", command=self.undo)
         tool_menu.add_separator()
-        tool_menu.add_checkbutton(label="이미지 이동 시 자동 저장 (→ WORK)", variable=self.auto_save_var)
+        tool_menu.add_checkbutton(label="이미지 이동 시 자동 저장", variable=self.auto_save_var)
         menubar.add_cascade(label="도구(T)", menu=tool_menu, underline=3)
 
         help_menu = tk.Menu(menubar, tearoff=0)
         help_menu.add_command(label="단축키 안내", command=self.show_shortcuts)
         help_menu.add_command(label="프로그램 정보", command=lambda: messagebox.showinfo(
-            "정보", f"{APP_TITLE}\n\nRAW → WORK → FINAL 단계 관리 · classes.yaml 설정"))
+            "정보", f"{APP_TITLE}\n\n작업자 → WORK · 검수자 → FINAL · scene_type · label.csv 기록"))
         menubar.add_cascade(label="도움말(H)", menu=help_menu, underline=4)
 
         self.root.config(menu=menubar)
@@ -207,10 +235,32 @@ class MainWindow:
                                      padx=10, pady=3)
         self.status_label.grid(row=2, column=0, sticky="ew")
 
-    # ---------- ① 왼쪽: 이미지 목록 ----------
+    # ---------- ① 왼쪽: 작업자 정보 / 이미지 목록 / scene_type ----------
     def build_left_panel(self, parent):
-        self.left_group = self.make_group(parent, "이미지 목록 (0)")
-        self.left_group.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
+        left = tk.Frame(parent, bg=BG)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
+
+        # --- 작업자 / 검수자 (Radiobutton = 여러 개 중 '하나만' 고르는 버튼) ---
+        role_group = self.make_group(left, "작업자 정보")
+        role_group.pack(fill="x")
+        row = tk.Frame(role_group, bg=PANEL)
+        row.pack(fill="x")
+        for value in (ROLE_WORKER, ROLE_REVIEWER):
+            tk.Radiobutton(row, text=f"{ROLE_TEXT[value]}  (→ {ROLE_STAGE[value].upper()})",
+                           variable=self.role_var, value=value, command=self.on_role_change,
+                           font=(FONT, 9), bg=PANEL, activebackground=PANEL, bd=0, highlightthickness=0,
+                           cursor="hand2").pack(side="left", padx=(0, 6))
+        self.name_combo = ttk.Combobox(role_group, state="readonly", font=(FONT, 10),
+                                       textvariable=self.name_var, values=self.members)
+        self.name_combo.pack(fill="x", pady=(4, 2))
+        self.name_combo.set("")
+        self.role_info = tk.Label(role_group, text="", font=(FONT, 8, "bold"), bg=PANEL,
+                                  fg=DANGER, anchor="w", justify="left")
+        self.role_info.pack(fill="x")
+
+        # --- 이미지 목록 ---
+        self.left_group = self.make_group(left, "이미지 목록 (0)")
+        self.left_group.pack(fill="both", expand=True, pady=(10, 0))
 
         tk.Button(self.left_group, text="폴더 열기…", command=self.open_folder,
                   font=(FONT, 9), bg=PANEL, relief="solid", bd=1,
@@ -237,6 +287,15 @@ class MainWindow:
         self.stage_count_label.pack(fill="x")
         tk.Label(self.left_group, text="✔ FINAL   ✎ WORK   ○ RAW   · 라벨 없음",
                  font=(FONT, 8), bg=PANEL, fg=MUTED, anchor="w").pack(fill="x", pady=(2, 0))
+
+        # --- scene_type (YOLO Class 가 아니라 '이미지 전체'에 대한 정보) ---
+        scene_group = self.make_group(left, "scene_type (이미지 전체)")
+        scene_group.pack(fill="x", pady=(10, 0))
+        for key, desc in self.scene_types.items():
+            tk.Radiobutton(scene_group, text=f"{key}\n   {desc}", variable=self.scene_var,
+                           value=key, command=self.on_scene_change, justify="left", anchor="w",
+                           font=(FONT, 9), bg=PANEL, activebackground=PANEL, bd=0, highlightthickness=0,
+                           cursor="hand2").pack(fill="x")
 
     # ---------- ② 가운데: 파일명 + 단계 배지 + 이미지 Canvas ----------
     def build_center_panel(self, parent):
@@ -360,12 +419,10 @@ class MainWindow:
         nav.pack(side="right")
         self.tool_button(nav, "◀", "이전 (A)", self.prev_image, width=8)
         self.tool_button(nav, "▶", "다음 (D)", self.next_image, width=8)
-        self.tool_button(nav, "✔", "저장 → WORK", self.save_labels, width=12,
-                         bg=SUCCESS, fg="white", active_bg=SUCCESS_DARK)
+        # 저장 버튼 글자/색은 역할에 따라 바뀝니다. (update_role_ui 참고)
+        self.save_btn = self.tool_button(nav, "✔", "저장 (Ctrl+S)", self.save_labels, width=15)
         self.tool_button(nav, "⏭", "저장 후 다음", self.save_and_next, width=12,
                          bg=PRIMARY, fg="white", active_bg=PRIMARY_DARK)
-        self.tool_button(nav, "🏁", "완료 → FINAL", self.complete_to_final, width=12,
-                         bg=FINAL_BG, fg="white", active_bg=FINAL_DARK)
 
     # ==================================================
     # 2. 이벤트 연결
@@ -376,12 +433,12 @@ class MainWindow:
         self.class_combo.bind("<<ComboboxSelected>>", self.on_class_combo_select)
         self.class_list.bind("<<ListboxSelect>>", self.on_class_list_select)
         self.box_list.bind("<<ListboxSelect>>", self.on_box_list_select)
+        self.name_combo.bind("<<ComboboxSelected>>", self.on_name_change)
 
         # ---------- 단축키 ----------
         self.bind_key("<Control-o>", self.open_folder, allow_in_entry=True)
         self.bind_key("<Control-s>", self.save_labels, allow_in_entry=True)
         self.bind_key("<Control-Return>", self.save_and_next, allow_in_entry=True)
-        self.bind_key("<Control-Shift-Return>", self.complete_to_final, allow_in_entry=True)
         self.bind_key("<Control-z>", self.undo)
         self.bind_key("<F5>", self.reload_labels, allow_in_entry=True)
         for key, func in [("a", self.prev_image), ("d", self.next_image),
@@ -451,6 +508,15 @@ class MainWindow:
             copied = copy_to_raw(legacy)
             messagebox.showinfo("RAW 원본 보관", f"{copied}개를 labels/Raw 로 복사했습니다.")
 
+        # labels/label.csv 준비 (없으면 머리줄만 있는 파일을 새로 만듭니다)
+        labels_root, _ = split_label_location(paths[0])
+        try:
+            self.label_log = LabelLog(labels_root / LABEL_CSV_NAME)
+            self.scene_records = self.label_log.latest_scene_types()
+        except (OSError, ValueError) as e:
+            self.label_log, self.scene_records = None, {}
+            messagebox.showwarning("label.csv", f"작업 기록 파일을 열 수 없습니다.\n{e}")
+
         self.image_root = image_root
         self.image_paths = paths
         self.stage_cache = [None] * len(paths)
@@ -507,6 +573,7 @@ class MainWindow:
         boxes, bad_lines = read_yolo_file(label_path, self.img_w, self.img_h)
         self.manager.load(boxes)
         self.loaded_stage = stage
+        self.load_scene()
 
         self.canvas.set_image(pil_image)
         self.refresh_panels()
@@ -515,10 +582,21 @@ class MainWindow:
         where = {STAGE_WORK: "WORK (작업 중)", STAGE_FINAL: "FINAL (검수 완료)",
                  STAGE_RAW: "RAW (원본)", None: "라벨 없음 → 새로 작성"}[stage]
         msg = (f"{path.name} 열기  |  원본 {self.img_w}x{self.img_h}  |  "
-               f"라벨: {where}  |  BBox {len(boxes)}개")
+               f"라벨: {where}  |  BBox {len(boxes)}개  |  "
+               f"scene_type: {self.loaded_scene or '미지정'}")
         if bad_lines:
             msg += f"  |  ⚠ 형식 오류 줄 {bad_lines} 건너뜀"
         self.set_status(msg)
+
+    def file_key(self, index=None):
+        """label.csv 에 쓰는 파일명. 이미지 기준 폴더에서의 상대 경로 (예: train/a.jpg)"""
+        i = self.index if index is None else index
+        return self.image_paths[i].relative_to(self.image_root).as_posix()
+
+    def load_scene(self):
+        """label.csv 에 남아 있는 이 이미지의 마지막 scene_type 을 화면에 표시"""
+        self.loaded_scene = self.scene_records.get(self.file_key(), "")
+        self.scene_var.set(self.loaded_scene)
 
     def sync_image_list(self):
         self.image_list.selection_clear(0, "end")
@@ -597,6 +675,55 @@ class MainWindow:
     def on_box_edited(self, message):
         self.on_box_selected()
         self.set_status(message)
+
+    # ==================================================
+    # 5-1. 작업자 / 검수자 · scene_type
+    # ==================================================
+
+    def current_role(self):
+        """(역할, 이름) - 둘 다 골라야 저장할 수 있습니다."""
+        return self.role_var.get(), self.name_var.get().strip()
+
+    def on_role_change(self):
+        self.update_role_ui()
+        role, name = self.current_role()
+        self.set_status(f"역할: {ROLE_TEXT[role]} → 저장하면 labels/{ROLE_STAGE[role]} 에만 저장됩니다."
+                        + ("" if name else "  (이름도 골라 주세요)"))
+
+    def on_name_change(self, event=None):
+        self.update_role_ui()
+        self.canvas.focus_set()                # 콤보박스 포커스 해제 → 단축키 계속 사용
+        role, name = self.current_role()
+        self.set_status(f"이름: {name}" + ("" if role else "  (작업자/검수자도 골라 주세요)"))
+
+    def update_role_ui(self):
+        """역할에 따라 저장 버튼 글자 · 색과 안내 문구를 바꿉니다."""
+        role, name = self.current_role()
+        if role == ROLE_REVIEWER:
+            text, bg, active = "검수 저장 → FINAL", FINAL_BG, FINAL_DARK
+        elif role == ROLE_WORKER:
+            text, bg, active = "저장 → WORK", SUCCESS, SUCCESS_DARK
+        else:
+            text, bg, active = "저장 (역할 선택)", DISABLED, DISABLED
+        self.save_btn.config(text=f"✔\n{text}", bg=bg, fg="white", activebackground=active,
+                             activeforeground="white")
+
+        if role and name:
+            self.role_info.config(text=f"{ROLE_TEXT[role]} {name}  →  labels/{ROLE_STAGE[role]} 에만 저장",
+                                  fg=SUCCESS if role == ROLE_WORKER else FINAL_BG)
+        else:
+            missing = " · ".join(t for t, ok in (("역할", role), ("이름", name)) if not ok)
+            self.role_info.config(text=f"⚠ {missing} 을(를) 골라야 저장할 수 있습니다.", fg=DANGER)
+
+    def on_scene_change(self):
+        """scene_type 도 '변경 사항'입니다 → 저장 안 됨 표시 후, 저장하면 label.csv 에 기록"""
+        scene = self.scene_var.get()
+        if self.canvas.pil_image is None:
+            return
+        if scene != self.loaded_scene:
+            self.manager.dirty = True
+            self.update_header()
+        self.set_status(f"scene_type: {scene} ({self.scene_types.get(scene, '')})  |  저장하면 label.csv 에 기록됩니다.")
 
     # ==================================================
     # 6. 모드 / Class / 정보 패널
@@ -723,7 +850,7 @@ class MainWindow:
         self.set_status(f"되돌리기 완료  |  BBox {len(self.manager.boxes)}개")
 
     # ==================================================
-    # 8. 저장(WORK) → 다시 불러와 확인 / 완료(FINAL)
+    # 8. 저장 (작업자 → WORK / 검수자 → FINAL) → 다시 불러와 확인 → label.csv 기록
     # ==================================================
 
     def short_path(self, path):
@@ -732,37 +859,98 @@ class MainWindow:
         except ValueError:
             return path.name
 
+    def check_before_save(self, role, name, scene):
+        """저장해도 되는지 미리 확인. 괜찮으면 True"""
+        if not role or not name:
+            messagebox.showwarning("저장 불가", "왼쪽 위 '작업자 정보'에서\n작업자/검수자와 이름을 먼저 골라 주세요.")
+            return False
+        if not scene:
+            messagebox.showwarning("저장 불가", "왼쪽 아래에서 scene_type 을 골라 주세요.\n"
+                                   "(이미지 전체가 어떤 형태인지 기록하는 정보입니다)")
+            return False
+
+        if role != ROLE_REVIEWER:
+            return True
+
+        # 검수자는 FINAL 에 저장하기 '전'에 내용을 검사합니다. (파일에 쓰기 전 = 메모리의 BBox 로 검사)
+        boxes = self.manager.boxes
+        lines = format_yolo_lines(boxes, self.img_w, self.img_h)
+        errors, warnings = self.validator.check_lines(lines, self.img_w, self.img_h)
+        e2, w2 = self.validator.check_scene(scene, len(boxes))
+        errors, warnings = errors + e2, warnings + w2
+        if errors:
+            self.set_status(f"✖ 검사 실패 {len(errors)}건 → FINAL 에 저장하지 않았습니다.")
+            messagebox.showerror("FINAL 저장 불가", "아래 문제를 고친 뒤 다시 저장해 주세요.\n\n"
+                                 + "\n".join(errors[:12]) + ("\n..." if len(errors) > 12 else ""))
+            return False
+        if warnings and not messagebox.askyesno(
+                "확인", "\n".join(warnings) + "\n\n그래도 FINAL 에 저장할까요?"):
+            self.set_status("FINAL 저장 취소")
+            return False
+        return True
+
     def save_labels(self):
-        """저장 = 항상 WORK. RAW 는 절대 건드리지 않습니다."""
+        """
+        저장 버튼 하나로 역할에 맞는 폴더에만 저장합니다. RAW 는 절대 건드리지 않습니다.
+            ① 역할 · 이름 · scene_type 확인 (+ 검수자는 내용 검사)
+            ② TXT 저장  (작업자 → Work / 검수자 → Final)
+            ③ 다시 읽어서 화면과 같은지 확인
+            ④ labels/label.csv 에 한 줄 기록
+        """
         if self.canvas.pil_image is None:
             return False
+        role, name = self.current_role()
+        scene = self.scene_var.get()
+        if not self.check_before_save(role, name, scene):                      # ①
+            return False
+
         image_path = self.image_paths[self.index]
         boxes = self.manager.boxes
         try:
-            work_path = save_to_work(image_path, boxes, self.img_w, self.img_h)
+            label_path = save_for_role(role, image_path, boxes, self.img_w, self.img_h)   # ②
         except OSError as e:                  # PermissionError 도 OSError 의 한 종류
             messagebox.showerror("저장 실패", str(e))
             return False
 
-        # 방금 쓴 TXT 를 다시 읽어서, 화면의 BBox 와 같은지 검증합니다. (QA 습관!)
-        reloaded, bad_lines = read_yolo_file(work_path, self.img_w, self.img_h)
+        # ③ 방금 쓴 TXT 를 다시 읽어서, 화면의 BBox 와 같은지 검증합니다. (QA 습관!)
+        reloaded, bad_lines = read_yolo_file(label_path, self.img_w, self.img_h)
         same = len(reloaded) == len(boxes) and not bad_lines and all(
             a["cls"] == b["cls"] and all(abs(a[k] - b[k]) < 0.5 for k in ("x1", "y1", "x2", "y2"))
             for a, b in zip(reloaded, boxes))
 
         self.manager.mark_saved(reloaded)         # 화면 = 파일 내용 그대로
-        self.loaded_stage = STAGE_WORK
+        self.loaded_stage = ROLE_STAGE[role]
         self.refresh_panels()
         self.update_list_item(self.index)
         self.update_progress()
 
+        # ④ 작업 기록
+        log_msg = self.write_label_log(role, name, scene)
+
+        who = f"[{ROLE_TEXT[role]} {name}]"
         if same:
-            self.set_status(f"✔ WORK 저장: {self.short_path(work_path)}  →  "
-                            f"다시 불러와 확인 OK (BBox {len(reloaded)}개)")
+            self.set_status(f"✔ {who} {ROLE_STAGE[role].upper()} 저장: {self.short_path(label_path)}  →  "
+                            f"확인 OK (BBox {len(reloaded)}개)  |  scene_type: {scene}  |  {log_msg}")
         else:
-            self.set_status(f"⚠ 저장은 했지만 다시 불러온 내용이 다릅니다: {self.short_path(work_path)}")
+            self.set_status(f"⚠ 저장은 했지만 다시 불러온 내용이 다릅니다: {self.short_path(label_path)}")
             messagebox.showwarning("확인 필요", "저장 후 다시 불러온 BBox가 화면과 다릅니다.\nTXT 파일을 확인해 주세요.")
         return True
+
+    def write_label_log(self, role, name, scene):
+        """label.csv 에 한 줄 추가. 결과 문구를 돌려줍니다."""
+        if self.label_log is None:
+            return "⚠ label.csv 없음"
+        try:
+            self.label_log.append(self.file_key(), ROLE_WORK_TYPE[role], name, scene)
+        except OSError as e:
+            # 엑셀로 label.csv 를 열어 두면 윈도우가 파일을 잠가서 여기로 옵니다.
+            messagebox.showwarning("label.csv 기록 실패",
+                                   "TXT 는 저장했지만 label.csv 에 기록하지 못했습니다.\n"
+                                   "엑셀 등에서 label.csv 를 닫고 다시 저장해 주세요.\n\n" + str(e))
+            return "⚠ label.csv 기록 실패"
+        self.scene_records[self.file_key()] = scene
+        self.loaded_scene = scene
+        return "label.csv 기록 ✔"
 
     def save_and_next(self):
         if self.save_labels():
@@ -771,53 +959,6 @@ class MainWindow:
                 self.load_image()
             else:
                 self.set_status("✔ 저장 완료  |  마지막 이미지입니다.")
-
-    def complete_to_final(self):
-        """
-        검수 완료 버튼
-            ① 현재 화면을 WORK 에 저장
-            ② validator 로 파일 · Class · 좌표 검사  → 에러가 있으면 FINAL 로 안 넘김
-            ③ WORK → FINAL 이동
-            ④ FINAL 을 다시 불러와 화면에 표시
-        """
-        if self.canvas.pil_image is None:
-            return
-        image_path = self.image_paths[self.index]
-        if self.loaded_stage == STAGE_FINAL and not self.manager.dirty:
-            self.set_status("이미 FINAL 에 있는 이미지입니다. (수정 후 다시 완료하면 FINAL 이 교체됩니다)")
-            return
-
-        if not self.save_labels():                                   # ①
-            return
-        work_path = get_label_path(image_path, STAGE_WORK)
-        errors, warnings = self.validator.check(image_path, work_path, self.img_w, self.img_h)   # ②
-        if errors:
-            self.set_status(f"✖ 검사 실패 {len(errors)}건 → FINAL 로 넘기지 않았습니다. (WORK 에 저장됨)")
-            messagebox.showerror("FINAL 이동 불가", "아래 문제를 고친 뒤 다시 완료해 주세요.\n\n"
-                                 + "\n".join(errors[:12]) + ("\n..." if len(errors) > 12 else ""))
-            return
-
-        final_path = get_label_path(image_path, STAGE_FINAL)
-        notes = list(warnings)
-        if final_path.exists():
-            notes.append("FINAL 에 이미 같은 파일이 있습니다. 새 내용으로 교체됩니다.")
-        if notes and not messagebox.askyesno("확인", "\n".join(notes) + "\n\n그래도 FINAL 로 넘길까요?"):
-            self.set_status("FINAL 이동 취소 (WORK 에 저장된 상태)")
-            return
-
-        try:
-            final_path = move_work_to_final(image_path)              # ③
-        except OSError as e:
-            messagebox.showerror("FINAL 이동 실패", str(e))
-            return
-
-        boxes, _ = read_yolo_file(final_path, self.img_w, self.img_h)   # ④
-        self.manager.load(boxes)
-        self.loaded_stage = STAGE_FINAL
-        self.refresh_panels()
-        self.update_list_item(self.index)
-        self.update_progress()
-        self.set_status(f"🏁 검수 완료: {self.short_path(final_path)}  (BBox {len(boxes)}개)")
 
     def reload_labels(self):
         """디스크의 TXT 를 다시 읽어 화면에 표시 (저장한 내용이 맞는지 눈으로 확인)"""
@@ -830,12 +971,13 @@ class MainWindow:
         boxes, bad_lines = read_yolo_file(label_path, self.img_w, self.img_h)
         self.manager.load(boxes)
         self.loaded_stage = stage
+        self.load_scene()
         self.refresh_panels()
         self.set_status(f"라벨 다시 불러오기 완료 ({STAGE_STYLE[stage][2]}): BBox {len(boxes)}개"
                         + (f"  |  ⚠ 형식 오류 줄 {bad_lines}" if bad_lines else ""))
 
     def restore_raw(self):
-        """RAW 원본 BBox 를 화면에 다시 가져옵니다. (RAW 파일은 읽기만, 저장하면 WORK 에 반영)"""
+        """RAW 원본 BBox 를 화면에 다시 가져옵니다. (RAW 파일은 읽기만 합니다)"""
         if self.canvas.pil_image is None:
             return
         raw_path = get_label_path(self.image_paths[self.index], STAGE_RAW)
@@ -845,7 +987,7 @@ class MainWindow:
         boxes, _ = read_yolo_file(raw_path, self.img_w, self.img_h)
         self.manager.replace_all(boxes)
         self.refresh_panels()
-        self.set_status(f"RAW 원본 BBox {len(boxes)}개로 되돌렸습니다. 저장하면 WORK 에 반영됩니다. "
+        self.set_status(f"RAW 원본 BBox {len(boxes)}개로 되돌렸습니다. 저장하면 역할에 맞는 폴더에 반영됩니다. "
                         "(Ctrl+Z 로 취소)")
 
     # ==================================================
@@ -858,7 +1000,9 @@ class MainWindow:
             return True
         if self.auto_save_var.get():
             return self.save_labels()
-        answer = messagebox.askyesnocancel("저장", "저장하지 않은 BBox 변경이 있습니다. WORK 에 저장할까요?")
+        role, _ = self.current_role()
+        where = f"{ROLE_STAGE[role].upper()} 에 " if role else ""
+        answer = messagebox.askyesnocancel("저장", f"저장하지 않은 변경(BBox / scene_type)이 있습니다. {where}저장할까요?")
         if answer is None:                        # 취소
             return False
         if answer:                                # 예
@@ -893,8 +1037,8 @@ class MainWindow:
     def show_shortcuts(self):
         messagebox.showinfo("단축키 안내", (
             "[이미지]  A / D : 이전 / 다음\n"
-            "[저장]    Ctrl+S : WORK 저장   Ctrl+Enter : 저장 후 다음   F5 : 다시 불러오기\n"
-            "[완료]    Ctrl+Shift+Enter : 검사 후 WORK → FINAL\n"
+            "[저장]    Ctrl+S : 저장 (작업자 → WORK / 검수자 → FINAL)\n"
+            "             Ctrl+Enter : 저장 후 다음   F5 : 다시 불러오기\n"
             "[모드]    W : 새 BBox   E : 선택 이동   H : Pan\n"
             f"[Class]  0 ~ {len(self.classes) - 1} : Class 선택 (선택된 BBox가 있으면 바로 변경)\n"
             "[편집]    Delete : 선택 BBox 삭제   Ctrl+Z : 되돌리기   Esc : 선택 해제\n"

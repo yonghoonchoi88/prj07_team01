@@ -36,7 +36,7 @@ from src.yolo.yolo_writer import (ROLE_REVIEWER, ROLE_STAGE, ROLE_WORKER, bbox_t
                                   can_move_to_final, copy_to_raw, format_yolo_lines,
                                   save_for_role)
 
-APP_TITLE = "조각김치 이물검출 라벨링 프로그램 v3.1"
+APP_TITLE = "조각김치 이물검출 라벨링 프로그램 v2.1"
 LABEL_CSV_NAME = "label.csv"         # labels/ 폴더 안에 생기는 작업 기록 파일
 
 # 역할 → 화면 표시 이름 / CSV 의 work_type

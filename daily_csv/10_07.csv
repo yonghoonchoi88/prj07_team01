@@ -29,4 +29,4 @@
 2026-10-07,최용훈,Done,Dataset Manifest 작성,manifests/dataset_manifest.csv 900줄 (dataset1 train 500 · dataset2 train 220 · dataset2 validation 180) (7번 산출물),완료,v4.0
 2026-10-07,최용훈,Doing,QA Summary · Test Report · Handoff 초안,reports/qa_summary.md · reports/test_report.md · docs/subject08_handoff.md 자동 생성 완료 → 직접 쓰는 메모 · FAIL 기록은 아직 비어 있음,진행 중,v4.0
 2026-10-07,박건,Found,REVIEW 사유 중복 집계,같은 이미지를 같은 사유로 여러 번 저장하면 QA Summary의 사유별 이미지 수가 중복으로 셈 (사유 합계 40 > 검토 대상 27) → reports.py 수정본 준비,확인됨,v4.0
-2026-10-07,박건,Todo,reports.py 수정본 반영,수정본 커밋 후 산출물 다시 생성 → QA Summary REVIEW 사유 표 숫자 재확인,예정,v4.1
+2026-10-07,박건,Todo,reports.py 수정본 반영,수정본 커밋 후 산출물 다시 생성 → QA Summary REVIEW 사유 표 숫자 재확인,예정,v4.0

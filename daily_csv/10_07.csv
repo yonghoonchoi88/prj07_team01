@@ -1,0 +1,32 @@
+날짜,작성자,구분,항목,세부내용,상태,관련
+2026-10-07,김하민,Done,Class 기준서 완료,docs/class_guide.md - Class 0~6 대상 · 포함 · 제외 · 애매한 경우 처리 기준 확정 (5번 산출물),완료,
+2026-10-07,김하민,Done,BBox 기준서 완료,docs/bbox_guide.md - 경계 · 작은 객체 · 겹침 · 가림 · REVIEW 기준 확정 (6번 산출물),완료,
+2026-10-07,김하민,Done,Project Baseline 완료,docs/project_Baseline.md → project_baseline.md 파일명 정리 · v4.0 데이터 위치 · 역할 · status/qa_status · 완료 기준 반영 (4번 산출물),완료,v4.0
+2026-10-07,박건,Done,README update,v4.0 기준으로 전면 수정 - 설치 · 실행 · 사용 순서 · 상태값 · 산출물 위치 · 팀 결과 합치기 · 보안 주의사항,완료,v4.0
+2026-10-07,최용훈,Done,데이터 재작업 결정,기존 작업 데이터를 폐기하고 data/raw 원본에서 새로 시작 (교과7 Manifest 기준 8개 컬럼에 맞추기 위해),완료,v4.0
+2026-10-07,최용훈,Done,data 폴더 구조 변경,data/raw (원본 · 읽기 전용) → data/work/labels → data/final/images + labels (QA PASS만) · data/manifests,완료,v4.0
+2026-10-07,최용훈,Done,개선 #1 자기 검수 PASS 금지,본인이 1차 검수한 이미지는 본인이 QA PASS 불가 → 다른 검수자가 교차검수 (rules.allow_self_review: false),완료,v4.0
+2026-10-07,심준형,Done,개선 #2 REVIEW 사유 6종,REVIEW 체크 시 review_reason 필수 선택 - class_ambiguous · bbox_boundary_ambiguous · object_separation_ambiguous · too_small_to_identify · occlusion_ambiguous · unused_class_found,완료,v4.0
+2026-10-07,심준형,Done,status 자동 판정,원본 라벨과 같으면 DONE · 다르면 EDITED 자동 기록 / 작업자 저장 · 반려 = qa WAIT · 검수자 QA PASS = qa PASS,완료,v4.0
+2026-10-07,최용훈,Done,검수자 반려 기능,검수자가 REVIEW 체크 후 저장하면 반려 → work에 남기고 qa WAIT · PASS 이미지 재저장 시 final에서 자동 제외,완료,v4.0
+2026-10-07,이승훈,Done,개선 #3 팀 결과 zip 묶음 · 합치기,파일 > 내 결과 묶음 만들기 (TXT · CSV만 · 원본 이미지 제외) → 팀장이 합치기 · 같은 이미지는 최신 작업 우선 + 충돌 목록 표시,완료,v4.0
+2026-10-07,이승훈,Done,개선 #4 목록 필터 6종,전체 · 미작업 · QA 대기 · REVIEW · QA PASS · 내가 1차 검수한 것,완료,v4.0
+2026-10-07,박건,Done,개선 #5 자동 Validation,전체 이미지 8가지 오류 종류 검사 (F7) · 실패 목록 더블클릭으로 이동 · 실행 기록 validation_runs.csv 저장,완료,v4.0
+2026-10-07,박건,Done,개선 #6 label.csv → CSV 2개 분리,dataset_manifest.csv (이미지 1장 = 1줄 현재 상태) + label_history.csv (저장할 때마다 쌓이는 작업 이력),완료,v4.0
+2026-10-07,최용훈,Done,개선 #7 테스트 · QA · Handoff 문서 자동 생성,Golden · Pilot 자동 테스트 + test_report.md · qa_summary.md · subject08_handoff.md 자동 생성 (AUTO 영역 밖 직접 쓴 메모는 유지),완료,v4.0
+2026-10-07,심준형,Done,tools 명령어 추가,tools/make_reports.py (화면 없이 산출물 생성) · tools/merge_results.py (pack / merge),완료,v4.0
+2026-10-07,심준형,Done,Golden Test,실제 데이터 20장 · 12개 항목 20/20 PASS → reports/test_report.md 1번 기록,완료,v4.0
+2026-10-07,심준형,Done,Pilot Test,실제 데이터 50장 · 12개 항목 50/50 PASS → reports/test_report.md 2번 기록,완료,v4.0
+2026-10-07,이승훈,Done,900장 1차 검수,250장 1차 검수 (DONE / EDITED / REVIEW 기록),완료,v4.0
+2026-10-07,박건,Done,900장 1차 검수,250장 1차 검수 (DONE / EDITED / REVIEW 기록),완료,v4.0
+2026-10-07,이승훈,Done,900장 1차 검수,150장 1차 검수 (DONE / EDITED / REVIEW 기록),완료,v4.0
+2026-10-07,박건,Done,900장 1차 검수,150장 1차 검수 (DONE / EDITED / REVIEW 기록),완료,v4.0
+2026-10-07,이승훈,Done,900장 1차 검수,100장 1차 검수 (DONE / EDITED / REVIEW 기록),완료,v4.0
+2026-10-07,팀 전체,Done,900장 검수·수정 완료,DONE 431 · EDITED 469 · 미처리 REVIEW 0 · scene_type kimchi_with_target 750 / object_only 150,완료,v4.0
+2026-10-07,팀 전체,Done,교차검수 (Cross Review),900장 전체 QA PASS · 검수자 반려 3건 처리 · REVIEW 제기 이미지 전부 해결,완료,v4.0
+2026-10-07,최용훈,Done,팀원 결과 취합,5명 결과 묶음을 master data로 합치기 → data/final images 900 / labels 900 Pair 일치,완료,v4.0
+2026-10-07,박건,Done,전체 Validation,총 10회 실행 · 최종 PASS 900 / FAIL 0 · Critical Error 0,완료,v4.0
+2026-10-07,최용훈,Done,Dataset Manifest 작성,manifests/dataset_manifest.csv 900줄 (dataset1 train 500 · dataset2 train 220 · dataset2 validation 180) (7번 산출물),완료,v4.0
+2026-10-07,최용훈,Doing,QA Summary · Test Report · Handoff 초안,reports/qa_summary.md · reports/test_report.md · docs/subject08_handoff.md 자동 생성 완료 → 직접 쓰는 메모 · FAIL 기록은 아직 비어 있음,진행 중,v4.0
+2026-10-07,박건,Found,REVIEW 사유 중복 집계,같은 이미지를 같은 사유로 여러 번 저장하면 QA Summary의 사유별 이미지 수가 중복으로 셈 (사유 합계 40 > 검토 대상 27) → reports.py 수정본 준비,확인됨,v4.0
+2026-10-07,박건,Todo,reports.py 수정본 반영,수정본 커밋 후 산출물 다시 생성 → QA Summary REVIEW 사유 표 숫자 재확인,예정,v4.1

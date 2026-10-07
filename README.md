@@ -62,8 +62,8 @@ prj07_team01/
 │   ├── label_history.csv        # (자동 생성) 라벨 저장·검수 이력 (누가·언제·무엇을)
 │   └── validation_runs.csv      # (자동 생성) Validation(F7) 실행 기록 - 최초 vs 최종 비교
 ├── reports/
-│   ├── qa_summary.md            # (자동 생성) 8. QA Summary - Data QA
-│   ├── test_report.md           # (자동 생성) 9. Test Report
+│   ├── qa_summary.md            # (자동 생성) QA Summary - Data QA
+│   ├── test_report.md           # (자동 생성) Test Report
 │   └── validation_report.csv    # (자동 생성) Validation 실패 목록
 ├── daily_csv/ · qa_csv/         # 일일 작업 · Program QA 기록
 │

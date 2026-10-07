@@ -8,7 +8,7 @@
 
 - 전체 이미지: 900장
 - FINAL 이미지: 0장 / FINAL TXT: 0개 (이미지-TXT Pair 일치 0쌍)
-- 1차 검수 완료: 899장 / 900장 (DONE 714 · EDITED 162 · REVIEW 23)
+- 1차 검수 완료: 900장 / 900장 (DONE 715 · EDITED 162 · REVIEW 23)
 - 라벨 검수 완료 (QA PASS): 0장 / 900장 (0.0%)
 
 | source_dataset | original_split | 이미지 수 |
@@ -23,7 +23,7 @@
 <!-- AUTO:VALIDATION:START -->
 ## 2. 자동 Validation 결과
 
-Validation 실행 횟수: 3회 (manifests/validation_runs.csv)
+Validation 실행 횟수: 4회 (manifests/validation_runs.csv)
 
 ### 최초 실행
 - 실행 시각: 2026-10-07 11:28:30
@@ -31,7 +31,7 @@ Validation 실행 횟수: 3회 (manifests/validation_runs.csv)
 - FAIL: 0건
 
 ### 최종 실행
-- 실행 시각: 2026-10-07 11:34:24
+- 실행 시각: 2026-10-07 11:41:02
 - PASS: 900장
 - FAIL: 0건
 
@@ -69,10 +69,10 @@ Validation 실행 횟수: 3회 (manifests/validation_runs.csv)
 
 | status | 의미 | 이미지 수 |
 |---|---|---:|
-| DONE | 기존 라벨이 맞아서 수정 없이 검수 완료 | 714 |
+| DONE | 기존 라벨이 맞아서 수정 없이 검수 완료 | 715 |
 | EDITED | 기존 라벨을 수정 · 추가 · 삭제한 뒤 저장 | 162 |
 | REVIEW | 판단이 어려워 추가 검수 필요 | 23 |
-| (미작업) | 아직 1차 검수 전 | 1 |
+| (미작업) | 아직 1차 검수 전 | 0 |
 
 ### REVIEW 사유
 
@@ -97,7 +97,7 @@ Validation 실행 횟수: 3회 (manifests/validation_runs.csv)
 
 최종 판정: **진행 중**  (QA PASS 미완료 900장 · 미해결 REVIEW 23장)
 
-_자동 생성: 2026-10-07 11:34 · 데이터: `/home/user1/exe_01/master_data`_
+_자동 생성: 2026-10-07 11:41 · 데이터: `/home/user1/exe_01/master_data`_
 <!-- AUTO:FINAL:END -->
 
 ---

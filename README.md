@@ -178,7 +178,6 @@ class_id x_center y_center width height      ← 모두 0~1 (이미지 크기로
 
 ```
 data/raw  ──작업자 1차 검수──▶  data/work/labels  ──검수자 QA PASS──▶  data/final/images + labels
-(읽기 전용)   DONE·EDITED·REVIEW     qa: WAIT         ◀──반려(REVIEW)──      qa: PASS
 ```
 
 | 규칙 | 내용 |

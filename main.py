@@ -1,5 +1,5 @@
 """
-조각김치 이물검출 라벨링 프로그램 v3.0 - 프로그램 시작
+조각김치 이물검출 라벨링 프로그램 v4.0 - 프로그램 시작
 =====================================================
 
 [실행]
@@ -7,14 +7,16 @@
     python main.py
 
 [하는 일]
-    1) configs/classes.yaml 을 읽어서 Class · 작업자 이름 · scene_type 목록을 만든다.
+    1) configs/classes.yaml 을 읽어서 Class · 작업자 · scene_type · review_reason · 규칙을 만든다.
     2) validator 로 설정 파일이 올바른지 검사한다.
     3) 메인 화면(MainWindow)을 띄운다.
 
-[라벨 흐름]  labels/Raw (원본) ─작업자 저장─▶ labels/Work ─검수자 저장─▶ labels/Final
-             (RAW → FINAL 직행 금지: WORK 에 있는 파일만 FINAL 로 갈 수 있음)
-[작업 기록]  저장할 때마다 labels/label.csv 에 한 줄씩 기록 (source_dataset · original_split · qa_status 포함)
-[작업 폴더]  data 폴더 하나만 열면 하위 데이터셋 이미지를 모두 모아 data/labels 하나로 통합
+[데이터 흐름]  (교과7 산출물 기준)
+    data/raw   원본 데이터셋 (읽기 전용, 절대 수정 안 함)
+      ─작업자 1차 검수─▶ data/work/labels        status: DONE / EDITED / REVIEW, qa_status: WAIT
+      ─검수자 교차검수─▶ data/final/images+labels qa_status: PASS   (raw → final 직행 금지)
+[작업대장]  data/manifests/dataset_manifest.csv  (이미지 1장 = 1줄, 8개 컬럼)
+[산출물]    검사 > 산출물 생성 → manifests/ · reports/ · docs/subject08_handoff.md
 """
 
 import sys
@@ -40,7 +42,10 @@ def load_config(path):
     classes.yaml → 프로그램이 쓰기 좋은 모양으로 정리
         classes     : [{"id": 0, "name": "...", "enabled": True, "color": "#..."}, ...]
         members     : ["최용훈", "박건", ...]
-        scene_types : {"kimchi_with_target": "김치와 이물질", ...}   (순서 유지)
+        scene_types    : {"kimchi_with_target": "김치 + 검출 대상 객체", ...}   (순서 유지)
+        review_reasons : {"class_ambiguous": "Class 판단이 애매함", ...}
+        rules          : {"allow_self_review": False, "golden_test_size": 20, ...}
+        project_dir    : 산출물(reports · manifests · docs)을 쓸 프로젝트 폴더
     """
     with open(path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
@@ -63,6 +68,9 @@ def load_config(path):
         "classes": classes,
         "members": [str(m).strip() for m in data["members"]],
         "scene_types": {str(k): str(v) for k, v in data["scene_types"].items()},
+        "review_reasons": {str(k): str(v) for k, v in data["review_reasons"].items()},
+        "rules": dict(data.get("rules") or {}),
+        "project_dir": BASE_DIR,
     }
 
 

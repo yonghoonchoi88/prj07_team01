@@ -58,10 +58,12 @@ prj07_team01/
 │   ├── bbox_guide.md            # BBox 기준서
 │   └── subject08_handoff.md     # (자동 생성) 교과 8 전달 문서
 ├── manifests/
-│   └── dataset_manifest.csv     # (자동 생성) 제출용 작업대장 사본
+│   ├── dataset_manifest.csv     # (자동 생성) 제출용 작업대장 사본
+│   ├── label_history.csv        # (자동 생성) 라벨 저장·검수 이력 (누가·언제·무엇을)
+│   └── validation_runs.csv      # (자동 생성) Validation(F7) 실행 기록 - 최초 vs 최종 비교
 ├── reports/
-│   ├── qa_summary.md            # (자동 생성) 8. QA Summary - Data QA
-│   ├── test_report.md           # (자동 생성) 9. Test Report
+│   ├── qa_summary.md            # (자동 생성) QA Summary - Data QA
+│   ├── test_report.md           # (자동 생성) Test Report
 │   └── validation_report.csv    # (자동 생성) Validation 실패 목록
 ├── daily_csv/ · qa_csv/         # 일일 작업 · Program QA 기록
 │
@@ -72,8 +74,7 @@ prj07_team01/
     │   └── 이물검출_학습데이터2/images/validation/*.jpg ...
     ├── work/labels/             # 1차 검수 결과 (작업자 저장)
     ├── final/images/            # QA PASS 이미지 (raw 에서 복사)
-    ├── final/labels/            # QA PASS TXT
-    └── manifests/               # dataset_manifest.csv · label_history.csv · validation_runs.csv
+    └── final/labels/            # QA PASS TXT
 ```
 
 ## 4. 설치 방법SS

@@ -9,10 +9,10 @@
 ## 2. FINAL Dataset
 
 - 전체 이미지: 900장
-- FINAL Image: 0장
-- FINAL Label: 0개
+- FINAL Image: 900장
+- FINAL Label: 900개
 - Label Format: YOLO Detection TXT
-- 이미지와 TXT 파일명 Pair: 0쌍 일치
+- 이미지와 TXT 파일명 Pair: 900쌍 일치
 
 FINAL 데이터 위치 (Git 에 올리지 않음):
 
@@ -58,9 +58,9 @@ BBox는 객체 외곽에 최대한 밀착하여 작성했습니다. 상세 기�
 
 ## 6. QA 결과
 
-- Validation PASS: 0장
+- Validation PASS: 900장
 - FAIL: 0장
-- REVIEW: 23장
+- REVIEW: 0장
 - Critical Error: 0건
 
 상세 QA 결과: `reports/qa_summary.md` · 프로그램 테스트 결과: `reports/test_report.md`

@@ -60,10 +60,10 @@ prj07_team01/
 ├── manifests/
 │   └── dataset_manifest.csv     # (자동 생성) 제출용 작업대장 사본
 ├── reports/
-│   ├── qa_summary.md            # (자동 생성) 8. QA Summary
+│   ├── qa_summary.md            # (자동 생성) 8. QA Summary - 데이터 QA
 │   ├── test_report.md           # (자동 생성) 9. Test Report
 │   └── validation_report.csv    # (자동 생성) Validation 실패 목록
-├── daily_csv/ · qa_csv/         # 일일 작업 · QA 기록
+├── daily_csv/ · qa_csv/         # 일일 작업 · Program QA 기록
 │
 └── data/                        # ⚠ Git 에 올리지 않음 (.gitignore)
     ├── raw/                     # 원본 데이터셋 (읽기 전용, 절대 수정 금지)
@@ -76,7 +76,7 @@ prj07_team01/
     └── manifests/               # dataset_manifest.csv · label_history.csv · validation_runs.csv
 ```
 
-## 4. 설치 방법
+## 4. 설치 방법SS
 
 ```bash
 # WSL / Ubuntu

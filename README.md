@@ -60,7 +60,7 @@ prj07_team01/
 ├── manifests/
 │   └── dataset_manifest.csv     # (자동 생성) 제출용 작업대장 사본
 ├── reports/
-│   ├── qa_summary.md            # (자동 생성) 8. QA Summary - 데이터 QA
+│   ├── qa_summary.md            # (자동 생성) 8. QA Summary - Data QA
 │   ├── test_report.md           # (자동 생성) 9. Test Report
 │   └── validation_report.csv    # (자동 생성) Validation 실패 목록
 ├── daily_csv/ · qa_csv/         # 일일 작업 · Program QA 기록

@@ -8,7 +8,7 @@
 
 - 전체 이미지: 900장
 - FINAL 이미지: 0장 / FINAL TXT: 0개 (이미지-TXT Pair 일치 0쌍)
-- 1차 검수 완료: 1장 / 900장 (DONE 1 · EDITED 0 · REVIEW 0)
+- 1차 검수 완료: 899장 / 900장 (DONE 714 · EDITED 162 · REVIEW 23)
 - 라벨 검수 완료 (QA PASS): 0장 / 900장 (0.0%)
 
 | source_dataset | original_split | 이미지 수 |
@@ -26,12 +26,12 @@
 Validation 실행 횟수: 3회 (manifests/validation_runs.csv)
 
 ### 최초 실행
-- 실행 시각: 2026-10-07 09:27:14
+- 실행 시각: 2026-10-07 11:28:30
 - PASS: 900장
 - FAIL: 0건
 
 ### 최종 실행
-- 실행 시각: 2026-10-07 09:29:08
+- 실행 시각: 2026-10-07 11:34:24
 - PASS: 900장
 - FAIL: 0건
 
@@ -60,28 +60,28 @@ Validation 실행 횟수: 3회 (manifests/validation_runs.csv)
 
 자동 Validation 에서 발견된 이미지와, 작업 중 REVIEW 로 올라온 이미지를 사람이 다시 확인했습니다.
 
-- 검토 대상: 0건 (최초 Validation FAIL + REVIEW 제기)
+- 검토 대상: 26건 (최초 Validation FAIL + REVIEW 제기)
 - 수정 완료: 0건
-- 미해결: 0건
+- 미해결: 26건
 - 교차검수 반려 (검수자 → REVIEW): 0건
 
 ### 1차 검수 상태 (현재)
 
 | status | 의미 | 이미지 수 |
 |---|---|---:|
-| DONE | 기존 라벨이 맞아서 수정 없이 검수 완료 | 1 |
-| EDITED | 기존 라벨을 수정 · 추가 · 삭제한 뒤 저장 | 0 |
-| REVIEW | 판단이 어려워 추가 검수 필요 | 0 |
-| (미작업) | 아직 1차 검수 전 | 899 |
+| DONE | 기존 라벨이 맞아서 수정 없이 검수 완료 | 714 |
+| EDITED | 기존 라벨을 수정 · 추가 · 삭제한 뒤 저장 | 162 |
+| REVIEW | 판단이 어려워 추가 검수 필요 | 23 |
+| (미작업) | 아직 1차 검수 전 | 1 |
 
 ### REVIEW 사유
 
 | review_reason | 의미 | 제기된 이미지 | 현재 미해결 |
 |---|---|---:|---:|
-| `class_ambiguous` | Class 판단이 애매함 | 0 | 0 |
-| `bbox_boundary_ambiguous` | BBox 경계가 애매함 | 0 | 0 |
+| `class_ambiguous` | Class 판단이 애매함 | 7 | 4 |
+| `bbox_boundary_ambiguous` | BBox 경계가 애매함 | 1 | 0 |
 | `object_separation_ambiguous` | 겹친 객체를 나누기 애매함 | 0 | 0 |
-| `too_small_to_identify` | 너무 작아서 식별이 어려움 | 0 | 0 |
+| `too_small_to_identify` | 너무 작아서 식별이 어려움 | 28 | 19 |
 | `occlusion_ambiguous` | 가려져서 판단이 어려움 | 0 | 0 |
 | `unused_class_found` | 사용하지 않는 Class(4 고무장갑) 발견 - 임의 삭제 금지 | 0 | 0 |
 <!-- AUTO:HUMAN:END -->
@@ -93,11 +93,11 @@ Validation 실행 횟수: 3회 (manifests/validation_runs.csv)
 
 - PASS: 0장
 - FAIL: 0장
-- REVIEW: 0장
+- REVIEW: 23장
 
-최종 판정: **진행 중**  (QA PASS 미완료 900장)
+최종 판정: **진행 중**  (QA PASS 미완료 900장 · 미해결 REVIEW 23장)
 
-_자동 생성: 2026-10-07 09:29 · 데이터: `/home/user1/exe_01/data/image_set`_
+_자동 생성: 2026-10-07 11:34 · 데이터: `/home/user1/exe_01/master_data`_
 <!-- AUTO:FINAL:END -->
 
 ---

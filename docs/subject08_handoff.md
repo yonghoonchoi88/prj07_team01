@@ -60,7 +60,7 @@ BBox는 객체 외곽에 최대한 밀착하여 작성했습니다. 상세 기�
 
 - Validation PASS: 0장
 - FAIL: 0장
-- REVIEW: 0장
+- REVIEW: 23장
 - Critical Error: 0건
 
 상세 QA 결과: `reports/qa_summary.md` · 프로그램 테스트 결과: `reports/test_report.md`

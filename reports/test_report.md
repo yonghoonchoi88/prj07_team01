@@ -12,7 +12,7 @@
 ### 테스트 데이터
 - 실제 조각김치 이미지: 20장 (데이터셋 · split 이 고루 섞이도록 간격을 두고 선택)
 - 실제 YOLO TXT: 대응하는 20개 (원본은 바꾸지 않고 임시 폴더에서 저장 · Reload)
-- 실행 시각: 2026-10-07 09:29:00 · 소요 0.9초
+- 실행 시각: 2026-10-07 11:12:46 · 소요 0.9초
 
 ### 테스트 결과
 
@@ -48,7 +48,7 @@
 ### 테스트 데이터
 - 실제 조각김치 이미지: 50장 (데이터셋 · split 이 고루 섞이도록 간격을 두고 선택)
 - 실제 YOLO TXT: 대응하는 50개 (원본은 바꾸지 않고 임시 폴더에서 저장 · Reload)
-- 실행 시각: 2026-10-07 09:29:03 · 소요 2.2초
+- 실행 시각: 2026-10-07 11:12:48 · 소요 2.2초
 
 ### 테스트 결과
 
@@ -104,7 +104,7 @@
 | 900장 이미지 탐색 가능 | PASS |
 | 이미지와 TXT Pair 정상 (FINAL) | NOT YET |
 | 저장 후 Reload 정상 (Golden · Pilot) | PASS |
-| 미처리 REVIEW 없음 | PASS |
+| 미처리 REVIEW 없음 | NOT YET |
 | Critical Error 없음 | PASS |
 | Validation 오류 없음 | PASS |
 | 900장 전체 QA PASS | NOT YET |
@@ -113,7 +113,7 @@
 
 - 전체 대상: 900장
 - Critical Error: 0건
-- Unresolved Review: 0건
+- Unresolved Review: 23건
 - Validation Error: 0건
 
 최종 판정: **NOT YET**

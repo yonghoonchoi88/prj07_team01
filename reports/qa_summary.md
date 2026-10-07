@@ -100,8 +100,3 @@ Validation 실행 횟수: 10회 (manifests/validation_runs.csv)
 _자동 생성: 2026-10-07 16:16 · 데이터: `/home/user1/exe_01/master_data`_
 <!-- AUTO:FINAL:END -->
 
----
-
-## 5. 메모 (직접 작성)
-
-- 예) Empty TXT 4건은 이미지 확인 결과 정상 김치 → scene_type normal_kimchi 로 수정 후 PASS

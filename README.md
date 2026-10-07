@@ -1,5 +1,7 @@
 # 조각김치 이물검출 라벨링 프로그램 (v4.0)
 
+### [이 데이터는 교육용으로 제작된 100% 가상 데이터입니다]
+
 조각김치 이미지 900장의 이물질 BBox 라벨을 **검수 · 수정 · 교차검수**하고,
 교과 7 산출물(**Dataset Manifest · QA Summary · Test Report · Handoff**)까지 만들어 주는 팀 프로젝트입니다.
 
@@ -23,14 +25,14 @@
 |---|---|
 | 라벨 편집 | 이미지 열기 · 기존 TXT Load · BBox 추가/수정/삭제 · Class 변경 · Zoom/Pan · 되돌리기 · 저장 후 Reload 확인 |
 | 1차 검수 (작업자) | 저장하면 `data/work` 에만 저장 · **status 자동 판정** (DONE / EDITED) · REVIEW 체크 + 사유 선택 |
-| 교차검수 (검수자) | **QA PASS** → `data/final/images + labels` 한 쌍 저장 · **반려** → REVIEW 로 되돌림 · 본인이 1차 검수한 이미지는 PASS 불가 |
-| 작업대장 | `data/manifests/dataset_manifest.csv` 자동 관리 (교과 7 의 8개 컬럼) |
+| 교차검수 (검수자) | **QA PASS** → `data/final/images + labels` 한 쌍 저장 · **반려** → REVIEW 로 되돌림 (본인이 1차 검수한 이미지는 PASS 불가) |
+| 작업대장 | `data/manifests/dataset_manifest.csv` 자동 관리 (file_name[파일명], source_dataset[작업 데이터셋], original_split[원본 파일명], scene_type[현재 사진타입], worker[작업자], status[작업상태], qa_status[2차 검수상태] ,review_reason[재검수 확인]) |
 | 작업 이력 | `data/manifests/label_history.csv` — 누가 · 언제 · 무엇을 했는지 계속 쌓임 |
-| 이미지 목록 필터 | 전체 / 미작업 / QA 대기 / REVIEW / QA PASS / 내가 1차 검수한 것 |
-| 전체 Validation (F7) | 900장을 8가지 오류 종류로 검사 → 실패 목록 더블클릭으로 바로 이동 · 실행 기록 저장 |
+| 이미지 목록 필터 | 전체 / 미작업 / QA 대기 / REVIEW / QA PASS / 1차 검수자 표시 |
+| 전체 Validation (F7) | 900장을 8가지 오류 종류로 검사 → 실패 목록 더블클릭으로 바로 이동 및 실행 기록 저장 |
 | 자동 테스트 | Golden 20장 · Pilot 50장으로 12개 기능 자동 점검 (원본은 바꾸지 않음) |
 | 산출물 생성 | `manifests/dataset_manifest.csv` · `reports/qa_summary.md` · `reports/test_report.md` · `docs/subject08_handoff.md` |
-| 팀 결과 합치기 | 각자 결과를 zip 으로 묶고(원본 이미지 제외) 팀장이 하나로 합치기 |
+| 팀 결과 합치기 | 현재 결과를 zip 으로 묶고 저장(원본 이미지 제외)및 zip 불러오기 기능 |
 
 ## 3. 폴더 구조
 
@@ -176,7 +178,6 @@ class_id x_center y_center width height      ← 모두 0~1 (이미지 크기로
 
 ```
 data/raw  ──작업자 1차 검수──▶  data/work/labels  ──검수자 QA PASS──▶  data/final/images + labels
-(읽기 전용)   DONE·EDITED·REVIEW     qa: WAIT         ◀──반려(REVIEW)──      qa: PASS
 ```
 
 | 규칙 | 내용 |
@@ -226,7 +227,7 @@ python -m tools.merge_results merge --data data ../박건_1007.zip ../이승훈_
 python -m tools.merge_results merge --data data ../박건_1007.zip ../이승훈_1007.zip
 ```
 
-- 같은 이미지를 두 사람이 고쳤으면 **가장 나중 작업**이 이기고, 충돌 목록을 보여 줍니다.
+- 같은 이미지를 두 사람이 고쳤으면 **가장 나중 작업**으로 덮어쓰고, 충돌 목록을 보여 줍니다.
 - 팀장이 합친 결과를 다시 pack 해서 나눠 주면 모두 같은 상태가 됩니다.
 - ⚠ 작업 분배는 **이미지 범위를 겹치지 않게** 나누는 것이 가장 안전합니다.
 

@@ -40,3 +40,7 @@ runs/
 # 윈도우 → WSL 복사 때 생기는 꼬리표 파일
 *:Zone.Identifier
 *Zone.Identifier
+# 작업 데이터 (원본 · work · final · 작업대장 원본) - Git 에 올리지 않음
+data/
+handoff_subject08/
+*.zip

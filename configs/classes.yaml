@@ -1,5 +1,5 @@
 # ==================================================
-# 조각김치 이물검출 라벨링 프로그램 - Class · 작업자 · scene_type 설정
+# 조각김치 이물검출 라벨링 프로그램 - Class · 작업자 · scene_type · review_reason 설정
 # ==================================================
 # 이 파일은 문서가 아니라 프로그램이 실제로 읽어 사용하는 설정 파일입니다.
 #   - 숫자(0, 1, 2 ...) = YOLO class_id  →  0부터 빈칸 없이 이어져야 합니다.
@@ -41,8 +41,8 @@ classes:
 # ==================================================
 
 # 작업자 / 검수자로 고를 수 있는 이름 (둘 다 같은 목록에서 고릅니다)
-#   - 작업자 : labels/Work 에만 저장 가능
-#   - 검수자 : labels/Final 에만 저장 가능
+#   - 작업자(1차 검수) : data/work 에만 저장 (DONE / EDITED / REVIEW)
+#   - 검수자(교차검수) : QA PASS → data/final, 또는 반려(REVIEW) → data/work
 members:
   - "최용훈"
   - "박건"
@@ -50,11 +50,26 @@ members:
   - "김하민"
   - "심준형"
 
-# scene_type : YOLO Class 가 아닙니다!
+# scene_type : YOLO Class 가 아닙니다!  (교과7 7번 Dataset Manifest 기준)
 #   BBox 하나하나가 아니라 '이미지 전체가 어떤 형태인지' 기록하는 보조 정보입니다.
-#   TXT 에는 들어가지 않고 labels/label.csv 에만 기록됩니다.
+#   TXT 에는 들어가지 않고 manifests/dataset_manifest.csv 에만 기록됩니다.
 scene_types:
-  kimchi_with_target: "김치와 이물질"
-  normal_kimchi: "김치만"
-  target_only: "이물질만"
+  kimchi_with_target: "김치 + 검출 대상 객체"
+  normal_kimchi: "정상 김치 (검출 대상 없음)"
+  object_only: "대상 객체만 단독으로 있는 이미지"
   other_review: "바로 분류하기 어려운 이미지"
+
+# review_reason : status 가 REVIEW 일 때 반드시 하나를 고릅니다.  (docs/class_guide.md · bbox_guide.md 기준)
+review_reasons:
+  class_ambiguous: "Class 판단이 애매함"
+  bbox_boundary_ambiguous: "BBox 경계가 애매함"
+  object_separation_ambiguous: "겹친 객체를 나누기 애매함"
+  too_small_to_identify: "너무 작아서 식별이 어려움"
+  occlusion_ambiguous: "가려져서 판단이 어려움"
+  unused_class_found: "사용하지 않는 Class(4 고무장갑) 발견 - 임의 삭제 금지"
+
+# 팀 작업 규칙
+rules:
+  allow_self_review: false     # false = 본인이 1차 검수한 이미지는 본인이 QA PASS 못 함 (교차검수)
+  golden_test_size: 20         # Golden Test 에 쓸 이미지 수
+  pilot_test_size: 50          # Pilot Test 에 쓸 이미지 수

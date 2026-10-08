@@ -71,17 +71,17 @@
 
 ### YOLO TXT ①
 
-![YOLO TXT ①](FINAL_YOLO_images/Pasted%20image%2020261008092325.png)
+![YOLO TXT ①](FINAL_YOLO_images/image.png)
 
 
 ### YOLO TXT ②
 
-![YOLO TXT ②](FINAL_YOLO_images/Pasted%20image%2020261008092330.png)
+![YOLO TXT ②](FINAL_YOLO_images/image1.png)
 
 
 ### YOLO TXT ③
 
-![YOLO TXT ③](FINAL_YOLO_images/Pasted%20image%2020261008092334.png)
+![YOLO TXT ③](FINAL_YOLO_images/image3.png)
 
 
 ---

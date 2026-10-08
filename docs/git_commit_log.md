@@ -7,8 +7,8 @@
 | 저장소 | [yonghoonchoi88/prj07_team01](https://github.com/yonghoonchoi88/prj07_team01) |
 | 브랜치 | `main` (팀원 개인 브랜치 → Pull Request → main merge) |
 | 기간 | 2026-10-02 ~ 2026-10-08 |
-| 추출 시각 | 2026-10-08 08:46 (`git log origin/main`) |
-| 전체 커밋 | **80개** = 작업 커밋 50개 + merge 30개 (Pull Request 26건) |
+| 추출 시각 | 2026-10-08 11:02 (`git log origin/main`) |
+| 전체 커밋 | **106개** = 작업 커밋 65개 + merge 41개 (Pull Request 36건) |
 
 ## 1. 팀원별 작업 커밋 수
 
@@ -16,22 +16,22 @@ merge 커밋은 제외했습니다.
 
 | 팀원 | GitHub ID | 커밋 수 |
 |---|---|---:|
-| 최용훈 | `yonghoonchoi88` | 36 |
-| 박건 | `howolcat` | 9 |
+| 최용훈 | `yonghoonchoi88` | 44 |
+| 박건 | `howolcat` | 12 |
 | 김하민 | `hxxdxm` | 4 |
-| 심준형 | `simpson92` | 1 |
-| 이승훈 | `lee26060715` | 0 |
+| 심준형 | `simpson92` | 3 |
+| 이승훈 | `lee26060715` | 2 |
 
 ## 2. 커밋 종류
 
 | 종류 | 의미 | 커밋 수 |
 |---|---|---:|
-| `feat` | 새 기능 | 15 |
-| `fix` | 버그 수정 | 11 |
-| `doc` | 문서 | 11 |
-| `docs` | 문서 | 5 |
+| `feat` | 새 기능 | 16 |
+| `doc` | 문서 | 15 |
+| `fix` | 버그 수정 | 14 |
+| `docs` | 문서 | 11 |
 | `chore` | 정리 · 설정 | 4 |
-| 기타 | 접두어 없음 | 2 |
+| 기타 | 접두어 없음 | 3 |
 | `test` | 테스트 | 1 |
 | `feature` | 새 기능 | 1 |
 
@@ -41,8 +41,8 @@ merge 커밋은 제외했습니다.
 |---|---:|---:|
 | 2026-10-02 | 7 | 0 |
 | 2026-10-06 | 22 | 15 |
-| 2026-10-07 | 18 | 10 |
-| 2026-10-08 | 3 | 1 |
+| 2026-10-07 | 19 | 10 |
+| 2026-10-08 | 17 | 11 |
 
 ## 4. 전체 이력
 
@@ -127,6 +127,7 @@ merge 커밋은 제외했습니다.
 |   | 17:19 | [`f6bc36d`](https://github.com/yonghoonchoi88/prj07_team01/commit/f6bc36d) | 박건 | fix : md 내용 수정 |
 |   | 17:20 | [`92a5b6d`](https://github.com/yonghoonchoi88/prj07_team01/commit/92a5b6d) | 박건 | fix : md 내용 수정 |
 |   | 17:25 | [`9782d5e`](https://github.com/yonghoonchoi88/prj07_team01/commit/9782d5e) | 박건 | fix : md 내용 수정 |
+|   | 17:27 | [`7654ad2`](https://github.com/yonghoonchoi88/prj07_team01/commit/7654ad2) | 이승훈 | .gitignore에 원본 이미지, 라벨 폴더 추가 |
 |   | 17:33 | [`c8063b7`](https://github.com/yonghoonchoi88/prj07_team01/commit/c8063b7) | 박건 | fix : md 내용 수정 |
 | ★ | 17:36 | [`be36070`](https://github.com/yonghoonchoi88/prj07_team01/commit/be36070) | 박건 | **Merge pull request #23 from yonghoonchoi88/pg** |
 |   | 17:46 | [`00115ff`](https://github.com/yonghoonchoi88/prj07_team01/commit/00115ff) | 최용훈 | doc : git commit log uploaded |
@@ -147,6 +148,31 @@ merge 커밋은 제외했습니다.
 |   | 08:27 | [`53a3bf6`](https://github.com/yonghoonchoi88/prj07_team01/commit/53a3bf6) | 최용훈 | doc : Read.me files layout updated |
 |   | 08:38 | [`6fec010`](https://github.com/yonghoonchoi88/prj07_team01/commit/6fec010) | 최용훈 | doc : Read.me files layout updated |
 | ★ | 08:41 | [`7b71cc8`](https://github.com/yonghoonchoi88/prj07_team01/commit/7b71cc8) | 최용훈 | **Merge pull request #27 from yonghoonchoi88/ch** |
+|   | 08:48 | [`7bc56a4`](https://github.com/yonghoonchoi88/prj07_team01/commit/7bc56a4) | 최용훈 | docs: git commit log updated (10-08) |
+| ★ | 08:49 | [`6fdca0b`](https://github.com/yonghoonchoi88/prj07_team01/commit/6fdca0b) | 최용훈 | **Merge pull request #28 from yonghoonchoi88/ch** |
+|   | 09:01 | [`1ddfe5b`](https://github.com/yonghoonchoi88/prj07_team01/commit/1ddfe5b) | 최용훈 | doc : Readme updated |
+|   | 09:04 | [`43c3849`](https://github.com/yonghoonchoi88/prj07_team01/commit/43c3849) | 최용훈 | doc : git_coomit_log updated |
+| ★ | 09:05 | [`e85eb98`](https://github.com/yonghoonchoi88/prj07_team01/commit/e85eb98) | 최용훈 | **Merge pull request #29 from yonghoonchoi88/ch** |
+|   | 09:10 | [`08b5dcf`](https://github.com/yonghoonchoi88/prj07_team01/commit/08b5dcf) | 최용훈 | doc : test_report final acceptance test based on read me only user side |
+| ★ | 09:11 | [`ac48f9e`](https://github.com/yonghoonchoi88/prj07_team01/commit/ac48f9e) | 최용훈 | **Merge pull request #30 from yonghoonchoi88/ch** |
+|   | 09:13 | [`9613a43`](https://github.com/yonghoonchoi88/prj07_team01/commit/9613a43) | 최용훈 | doc : test_report updated |
+| ★ | 09:14 | [`39f39d5`](https://github.com/yonghoonchoi88/prj07_team01/commit/39f39d5) | 최용훈 | **Merge pull request #31 from yonghoonchoi88/ch** |
+|   | 09:29 | [`484b9fb`](https://github.com/yonghoonchoi88/prj07_team01/commit/484b9fb) | 최용훈 | docs: handoff 교과8 주의사항 · scene_type 분포 추가 |
+| ★ | 09:29 | [`29edb67`](https://github.com/yonghoonchoi88/prj07_team01/commit/29edb67) | 최용훈 | **Merge pull request #32 from yonghoonchoi88/ch** |
+|   | 09:47 | [`009936f`](https://github.com/yonghoonchoi88/prj07_team01/commit/009936f) | 최용훈 | docs: QA Summary · Handoff 에 Class 별 BBox · 변경 내역 통계 추가 |
+|   | 09:57 | [`5779c7c`](https://github.com/yonghoonchoi88/prj07_team01/commit/5779c7c) | 최용훈 | docs: QA Summary 추가 통계 · RAW 최초 점검 연결 |
+|   | 10:08 | [`78e76d6`](https://github.com/yonghoonchoi88/prj07_team01/commit/78e76d6) | 심준형 | docs:add md file |
+|   | 10:13 | [`27c8cd3`](https://github.com/yonghoonchoi88/prj07_team01/commit/27c8cd3) | 심준형 | feat : final_yolo 증빙 파일 이미지 |
+|   | 10:18 | [`80f660a`](https://github.com/yonghoonchoi88/prj07_team01/commit/80f660a) | 박건 | fix : md 내용 최종수정 및 버그 fix |
+| ★ | 10:18 | [`f058c9f`](https://github.com/yonghoonchoi88/prj07_team01/commit/f058c9f) | 최용훈 | **Merge pull request #33 from yonghoonchoi88/ch** |
+| ★ | 10:21 | [`5c77aeb`](https://github.com/yonghoonchoi88/prj07_team01/commit/5c77aeb) | 박건 | **Merge pull request #34 from yonghoonchoi88/pg** |
+|   | 10:30 | [`b0888f6`](https://github.com/yonghoonchoi88/prj07_team01/commit/b0888f6) | 박건 | fix : md figma 바로가기 디자인 변경 |
+| ★ | 10:33 | [`6ef0c23`](https://github.com/yonghoonchoi88/prj07_team01/commit/6ef0c23) | 박건 | **Merge pull request #35 from yonghoonchoi88/pg** |
+|   | 10:43 | [`5f5b277`](https://github.com/yonghoonchoi88/prj07_team01/commit/5f5b277) | 이승훈 | docs: handoff 최종본 (8.1 표 제목 정리) |
+| · | 10:47 | [`e5c7ee8`](https://github.com/yonghoonchoi88/prj07_team01/commit/e5c7ee8) | 이승훈 | Merge branch 'main' into Lee_sh |
+| ★ | 10:51 | [`3e66a48`](https://github.com/yonghoonchoi88/prj07_team01/commit/3e66a48) | 이승훈 | **Merge pull request #36 from yonghoonchoi88/Lee_sh** |
+|   | 10:51 | [`654df79`](https://github.com/yonghoonchoi88/prj07_team01/commit/654df79) | 박건 | fix : bbox_guide.md fix |
+| ★ | 10:52 | [`cd8f181`](https://github.com/yonghoonchoi88/prj07_team01/commit/cd8f181) | 박건 | **Merge pull request #37 from yonghoonchoi88/pg** |
 
 ## 5. 아직 main 에 merge 되지 않은 커밋
 
@@ -154,9 +180,9 @@ merge 커밋은 제외했습니다.
 
 | 브랜치 | 시각 | 커밋 | 작성자 | 메시지 |
 |---|---|---|---|---|
+| `pg` | 2026-10-08 11:01 | [`a1f9926`](https://github.com/yonghoonchoi88/prj07_team01/commit/a1f9926) | 박건 | fix : bbox_guide.md & README.md fix |
 | `sim` | 2026-10-07 17:06 | [`9911b91`](https://github.com/yonghoonchoi88/prj07_team01/commit/9911b91) | 심준형 | Delete pratice/images directory |
 | `sim` | 2026-10-07 17:06 | [`b6f6c94`](https://github.com/yonghoonchoi88/prj07_team01/commit/b6f6c94) | 심준형 | Delete pratice directory |
-| `Lee_sh` | 2026-10-07 17:27 | [`7654ad2`](https://github.com/yonghoonchoi88/prj07_team01/commit/7654ad2) | lee26060715 | .gitignore에 원본 이미지, 라벨 폴더 추가 |
 
 ---
 

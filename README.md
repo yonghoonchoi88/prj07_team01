@@ -1,4 +1,4 @@
-# 조각김치 이물검출 라벨링 프로그램 (v4.0)
+# 조각김치 이물검출 라벨링 프로그램 (v4.1)
 
 ### [이 데이터는 교육용으로 제작된 100% 가상 데이터입니다]
 
@@ -285,7 +285,7 @@ python -m tools.merge_results merge --data data ../박건_1007.zip ../이승훈_
 
 ---
 
-## 변경 이력
+## 16. 버전 변경 이력
 
 | 날짜 | 버전 | 내용 |
 |---|:---:|---|
@@ -294,3 +294,4 @@ python -m tools.merge_results merge --data data ../박건_1007.zip ../이승훈_
 | 2026-10-06 | 2.1 | RAW → FINAL 직행 금지 · 검수자의 RAW 되돌리기 금지 |
 | 2026-10-06 | 3.0 | data 폴더 통합 (여러 데이터셋을 하나로) · source_dataset · original_split · qa_status |
 | 2026-10-07 | 4.0 | 교과 7 기준으로 재설계: `data/raw · work · final(images+labels)` · **dataset_manifest.csv (8개 컬럼)** · status 자동 판정(DONE/EDITED) · REVIEW + review_reason 6종 · 검수자 QA PASS / 반려 · 교차검수(본인 PASS 금지) · 이미지 목록 필터 · 전체 Validation 창 · Golden/Pilot 자동 테스트 · QA Summary · Test Report · Handoff 자동 생성 · 팀 결과 pack/merge |
+| 2026-10-08 | 4.1 | `tools/label_stats.py` 추가 (RAW vs FINAL 통계) · 설치 순서 수정 (venv) · 작업대장 컬럼 설명 수정 · 11개 산출물 표 정리 · QA Summary 5장 / Handoff 8장 통계 보강 · FINAL 라벨 증빙 문서 추가 · Acceptance Test 기록 |

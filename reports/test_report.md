@@ -83,11 +83,11 @@
 - 조치: 화면과 저장 함수 두 곳에서 work 존재 여부 확인 (이중 안전장치)
 - 재시험: PASS
 
-#### FAIL-02
-- 문제:
-- 원인:
-- 조치:
-- 재시험:
+#### FAIL-02 (10-08 발견 · 수정)
+- 문제: FINAL 증빙 문서의 이미지 10개가 GitHub 에서 표시되지 않음
+- 원인: 이미지 경로에 `FINAL_YOLO_images/` 폴더명이 빠짐
+- 조치: 모든 이미지 경로에 폴더명 추가 (b0ddb7f)
+- 재시험: 10개 링크 모두 파일 존재 확인 PASS
 
 ---
 
@@ -131,7 +131,7 @@
 | 기존 YOLO TXT Load · BBox 표시 | PASS | |
 | BBox 추가 / 수정 / 삭제 | PASS | |
 | Class 변경 | PASS | |
-| Zoom / Pan | | PASS |
+| Zoom / Pan | PASS | | 
 | Save → Reload | PASS | |
 | Validation (F7) | PASS | |
 | RAW 원본 보존 확인 | PASS | |

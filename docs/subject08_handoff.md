@@ -76,7 +76,44 @@ BBox는 객체 외곽에 최대한 밀착하여 작성했습니다. 상세 기�
 - dataset2 / validation: 180장
 <!-- AUTO:HANDOFF:END -->
 
-## 8. 교과 8 전달 자료
+
+## 8. 데이터 구성과 교과 8 주의사항
+
+### 8.1 scene_type 분포 (manifests/dataset_manifest.csv 기준)
+
+| source_dataset / original_split | kimchi_with_target | object_only | normal_kimchi | 합계 |
+|---|---:|---:|---:|---:|
+| dataset1 / train | 500 | 0 | 0 | 500 |
+| dataset2 / train | 100 | 120 | 0 | 220 |
+| dataset2 / validation | 150 | 30 | 0 | 180 |
+| **합계** | **750** | **150** | **0** | **900** |
+
+- 1차 검수 결과: DONE 431장 (기존 라벨 그대로) · EDITED 469장 (BBox/Class 수정·추가·삭제)
+- Empty TXT: 0개 (900장 모두 BBox 1개 이상, 사람 검수로 확인)
+- 교차검수: 900장 전부 1차 작업자와 다른 검수자가 QA PASS (본인 검수 0건)
+- REVIEW 제기 27장 → 전부 해결 (too_small_to_identify 19 · class_ambiguous 7 · bbox_boundary_ambiguous 1)
+
+### 8.2 교과 8에서 주의할 점
+
+1. **정상 김치(Negative Sample) 0장**
+   검출 대상이 없는 이미지가 없습니다. 이물이 없는 김치에서 잘못 검출하는 오탐(False Positive)은
+   이 데이터만으로는 평가하기 어렵습니다. 필요하면 정상 이미지를 추가로 확보하는 것을 권장합니다.
+
+2. **대상 객체 단독(object_only) 150장 (16.7%)**
+   김치 배경이 없는 이미지로, 실제 생산 환경과 배경이 다릅니다. 모두 dataset2 에 있으며
+   성능 평가 시 `kimchi_with_target` 과 분리해서 확인하는 것을 권장합니다.
+
+3. **train / validation 간 유사 장면 가능성**
+   파일명은 촬영 시각(`YYMMDD_HHMMSS…`)으로 보입니다. 기존 validation 180장 중 136장(76%)은
+   60초 이내에 촬영된 train 이미지가 있습니다 (최소 8초 차이).
+   같은 촬영 세션이 양쪽에 나뉘어 있어 평가 점수가 높게 나올 수 있으므로,
+   교과 8에서 split 을 정할 때 **촬영 날짜·시간 구간 단위로 나누는 방식**을 검토해 주세요.
+
+4. **Class 4(고무장갑)**: 900장 전체에서 발견 0건, `enabled: false` 유지.
+
+> 교과 7은 기존 split 을 변경하지 않았습니다. 최종 Train / Validation / Test 구성은 교과 8에서 결정합니다.
+
+## 9. 교과 8 전달 자료
 
 ```
 handoff_subject08/
@@ -92,7 +129,7 @@ handoff_subject08/
 ※ 실제 900장 데이터는 GitHub에 올리지 않고 내부 저장소 또는 지정된 교육환경에서 전달합니다.
 (라벨링 프로그램 메뉴 **검사 → 교과 8 Handoff 패키지 만들기** 로 위 폴더를 만들 수 있습니다)
 
-## 9. 교과 8에서 확인할 내용
+## 10. 교과 8에서 확인할 내용
 
 1. 이미지와 TXT Pair가 정상인지 확인
 2. Class 0~6 설정 확인
@@ -101,3 +138,5 @@ handoff_subject08/
 5. 기존 Dataset Split 정보 확인
 6. 학습용 Dataset 설정 파일 구성
 7. YOLO Object Detection 학습 진행
+8. scene_type 별(kimchi_with_target / object_only)로 성능을 나눠서 평가
+9. 촬영 시각 기준 유사 장면이 train / validation 에 섞이지 않았는지 확인 (8.2 참고)

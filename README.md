@@ -209,7 +209,7 @@ data/raw  ──작업자 1차 검수──▶  data/work/labels  ──검수�
 | 7 | Dataset Manifest | `manifests/dataset_manifest.csv` | 작업 중 자동 기록 → 산출물 생성 시 복사 |
 | 8 | QA Summary | `reports/qa_summary.md` | 검사 > 산출물 생성 (Validation 최초 vs 최종, Human QA, REVIEW 사유별 집계) + `tools/label_stats` 결과 수기 추가 (5장: scene_type · Class별 BBox · 변경 내역) |
 | 9 | Test Report | `reports/test_report.md` | 검사 > Golden · Pilot 자동 테스트 → 산출물 생성 (FAIL 기록 · Acceptance Test 는 직접 작성) |
-| 10 | README | `README.md` | 이 문서 |
+| 10 | README | `README.md` | 직접 작성 |
 | 11 | 교과 8 Handoff | `docs/subject08_handoff.md` | 산출물 생성 / 검사 > Handoff 패키지 (8장 주의사항은 직접 작성) |
 
 - `<!-- AUTO:... -->` 사이만 프로그램이 다시 씁니다. **그 밖에 직접 쓴 메모는 지워지지 않습니다.**

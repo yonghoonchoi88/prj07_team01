@@ -3,7 +3,7 @@
 ### [이 데이터는 교육용으로 제작된 100% 가상 데이터입니다]
 
 조각김치 이미지 900장의 이물질 BBox 라벨을 **검수 · 수정 · 교차검수**하고,
-교과 7 산출물(**Dataset Manifest · QA Summary · Test Report · Handoff**)까지 만들어 주는 팀 프로젝트입니다.
+산출물(**Dataset Manifest · QA Summary · Test Report · Handoff**)까지 만들어 주는 팀 프로젝트입니다.
 
 > v4.0 부터는 기존 작업 데이터를 쓰지 않고 **원본(raw)에서 새로 시작**합니다.
 > 작업 상태는 `dataset_manifest.csv` 한 장에 모이고, 보고서 숫자는 프로그램이 자동으로 채웁니다.
@@ -11,11 +11,12 @@
 ---
 
 ## 1. 프로젝트 소개
+[(Figma 바로가기)](https://www.figma.com/design/1B9QcM36Ne1j5sTHXcOAAV/1%25EC%25A1%25B0?node-id=160-143&t=7V3xsWXdhC4pMg7t-0)
 
 | 항목 | 내용 |
 |---|---|
 | 대상 | 조각김치 이미지 900장 (기존 데이터셋 여러 개 · train / validation) |
-| 목표 | 기존 YOLO 라벨을 검수 · 수정 → **QA PASS 데이터만** `data/final` 에 정리 → 교과 8(YOLO 학습)로 전달 |
+| 목표 | 기존 YOLO 라벨을 검수 · 수정 → **QA PASS 데이터만** `data/final` 에 정리 → Final Model(YOLO 학습)로 전달 |
 | 라벨 형식 | YOLO TXT (`class x_center y_center width height`, 0~1) |
 | 팀 | 최용훈(팀장) · 박건 · 이승훈 · 김하민 · 심준형 |
 
@@ -26,7 +27,7 @@
 | 라벨 편집 | 이미지 열기 · 기존 TXT Load · BBox 추가/수정/삭제 · Class 변경 · Zoom/Pan · 되돌리기 · 저장 후 Reload 확인 |
 | 1차 검수 (작업자) | 저장하면 `data/work` 에만 저장 · **status 자동 판정** (DONE / EDITED) · REVIEW 체크 + 사유 선택 |
 | 교차검수 (검수자) | **QA PASS** → `data/final/images + labels` 한 쌍 저장 · **반려** → REVIEW 로 되돌림 (본인이 1차 검수한 이미지는 PASS 불가) |
-| 작업대장 | `data/manifests/dataset_manifest.csv` 자동 관리 (file_name[파일명], source_dataset[작업 데이터셋], original_split[원본 파일명], scene_type[현재 사진타입], worker[작업자], status[작업상태], qa_status[2차 검수상태] ,review_reason[재검수 확인]) |
+| 작업대장 | `data/manifests/dataset_manifest.csv` 자동 관리 (file_name[파일명], source_dataset[원본 데이터셋], original_split[기존 train/validation 분할], scene_type[이미지 유형], worker[1차 작업자], status[1차 검수 상태], qa_status[교차검수 상태], review_reason[REVIEW 사유]) |
 | 작업 이력 | `data/manifests/label_history.csv` — 누가 · 언제 · 무엇을 했는지 계속 쌓임 |
 | 이미지 목록 필터 | 전체 / 미작업 / QA 대기 / REVIEW / QA PASS / 1차 검수자 표시 |
 | 전체 Validation (F7) | 900장을 8가지 오류 종류로 검사 → 실패 목록 더블클릭으로 바로 이동 및 실행 기록 저장 |
@@ -37,11 +38,11 @@
 ## 3. 폴더 구조
 
 ```
-prj07_team01/
-├── main.py                      # 프로그램 시작
-├── requirements.txt             # pillow, pyyaml
+prj07_team01/ 
+├── main.py                           # 프로그램 시작
+├── requirements.txt                  # pillow, pyyaml
 ├── configs/
-│   └── classes.yaml             # Class · 팀원 · scene_type · review_reason · 팀 규칙
+│   └── classes.yaml                  # Class · 팀원 · scene_type · review_reason · 팀 규칙
 ├── src/
 │   ├── ui/          main_window.py (화면 · 버튼) · canvas.py (이미지 · 마우스) · validation_window.py (검사 결과 창)
 │   ├── bbox/        bbox_manager.py (BBox 데이터) · bbox_editor.py (드래그 편집)
@@ -50,31 +51,34 @@ prj07_team01/
 │   ├── records/     manifest.py (작업대장) · history.py (작업 이력)
 │   └── qa/          self_test.py (Golden · Pilot 자동 테스트) · reports.py (산출물 생성)
 ├── tools/
-│   ├── make_reports.py          # 화면 없이 산출물 만들기
-│   └── merge_results.py         # 팀원 결과 묶기(pack) · 합치기(merge)
+│   ├── make_reports.py               # 화면 없이 산출물 만들기
+│   ├── merge_results.py              # 팀원 결과 묶기(pack) · 합치기(merge)
+│   └── label_stats.py                # RAW vs FINAL 라벨 통계 (Class별 BBox · 변경 내역 · RAW 점검)
 ├── docs/
-│   ├── project_baseline.md      # 팀 기준
-│   ├── class_guide.md           # Class 기준서
-│   ├── bbox_guide.md            # BBox 기준서
-│   └── subject08_handoff.md     # (자동 생성) 교과 8 전달 문서
+│   ├── project_baseline.md           # 팀 기준
+│   ├── class_guide.md                # Class 기준서
+│   ├── bbox_guide.md                 # BBox 기준서
+│   ├── subject08_handoff.md          # (자동 생성) 교과 8 전달 문서
+│   ├── FINAL_YOLO_Label_Evidence.md  # 최종 라벨링 증빙 문서
+│   └── FINAL_YOLO_images             # 최종 라벨링 증빙 문서 삽입 이미지
 ├── manifests/
-│   ├── dataset_manifest.csv     # (자동 생성) 제출용 작업대장 사본
-│   ├── label_history.csv        # (자동 생성) 라벨 저장·검수 이력 (누가·언제·무엇을)
-│   └── validation_runs.csv      # (자동 생성) Validation(F7) 실행 기록 - 최초 vs 최종 비교
+│   ├── dataset_manifest.csv          # (자동 생성) 제출용 작업대장 사본
+│   ├── label_history.csv             # (자동 생성) 라벨 저장·검수 이력 (누가·언제·무엇을)
+│   └── validation_runs.csv           # (자동 생성) Validation(F7) 실행 기록 - 최초 vs 최종 비교
 ├── reports/
-│   ├── qa_summary.md            # (자동 생성) QA Summary - Data QA
-│   ├── test_report.md           # (자동 생성) Test Report
-│   └── validation_report.csv    # (자동 생성) Validation 실패 목록
-├── daily_csv/ · qa_csv/         # 일일 작업 · Program QA 기록
+│   ├── qa_summary.md                 # (자동 생성) QA Summary - Data QA
+│   ├── test_report.md                # (자동 생성) Test Report
+│   └── validation_report.csv         # (자동 생성) Validation 실패 목록
+├── daily_csv/ · qa_csv/              # 일일 작업 · Program QA 기록
 │
-└── data/                        # ⚠ Git 에 올리지 않음 (.gitignore)
-    ├── raw/                     # 원본 데이터셋 (읽기 전용, 절대 수정 금지)
+└── data/                             # ⚠ Git 에 올리지 않음 (.gitignore)
+    ├── raw/                          # 원본 데이터셋 (읽기 전용, 절대 수정 금지)
     │   ├── 이물검출_학습데이터1/images/train/*.jpg
     │   │                       labels/train/*.txt
     │   └── 이물검출_학습데이터2/images/validation/*.jpg ...
-    ├── work/labels/             # 1차 검수 결과 (작업자 저장)
-    ├── final/images/            # QA PASS 이미지 (raw 에서 복사)
-    └── final/labels/            # QA PASS TXT
+    ├── work/labels/                  # 1차 검수 결과 (작업자 저장)
+    ├── final/images/                 # QA PASS 이미지 (raw 에서 복사)
+    └── final/labels/                 # QA PASS TXT
 ```
 
 ## 4. 설치 방법
@@ -198,13 +202,38 @@ data/raw  ──작업자 1차 검수──▶  data/work/labels  ──검수�
 
 | 번호 | 산출물 | 위치 | 만드는 방법 |
 |:---:|---|---|---|
+| 1 | 라벨링 프로그램 | `python main.py` | 실행 화면 캡처 · 시연 |
+| 2 | 소스코드 | `main.py` · `src/` · `configs/classes.yaml` · `requirements.txt` | Git 이력: [`docs/git_commit_log.md`](docs/git_commit_log.md) |
+| 3 | FINAL YOLO 라벨 증빙 | `data/final/images/` · `data/final/labels/` (Git 제외) | QA PASS 시 자동 저장 · 폴더 / 파일 수 캡처로 증빙 |
+| 4 | Project Baseline | `docs/project_baseline.md` | 직접 작성 |
+| 5 | Class 기준서 | `docs/class_guide.md` | 직접 작성 |
+| 6 | BBox 기준서 | `docs/bbox_guide.md` | 직접 작성 |
 | 7 | Dataset Manifest | `manifests/dataset_manifest.csv` | 작업 중 자동 기록 → 산출물 생성 시 복사 |
-| 8 | QA Summary | `reports/qa_summary.md` | 검사 > 산출물 생성 (Validation 최초 vs 최종, Human QA, REVIEW 사유별 집계) |
-| 9 | Test Report | `reports/test_report.md` | 검사 > Golden · Pilot 자동 테스트 → 산출물 생성 (FAIL 기록은 직접 작성) |
-| 10 | Handoff | `docs/subject08_handoff.md` | 산출물 생성 / 검사 > Handoff 패키지 |
+| 8 | QA Summary | `reports/qa_summary.md` | 검사 > 산출물 생성 (Validation 최초 vs 최종, Human QA, REVIEW 사유별 집계) + `tools/label_stats` 결과 수기 추가 (5장: scene_type · Class별 BBox · 변경 내역) |
+| 9 | Test Report | `reports/test_report.md` | 검사 > Golden · Pilot 자동 테스트 → 산출물 생성 (FAIL 기록 · Acceptance Test 는 직접 작성) |
+| 10 | README | `README.md` | 이 문서 |
+| 11 | 교과 8 Handoff | `docs/subject08_handoff.md` | 산출물 생성 / 검사 > Handoff 패키지 (8장 주의사항은 직접 작성) |
 
 - `<!-- AUTO:... -->` 사이만 프로그램이 다시 씁니다. **그 밖에 직접 쓴 메모는 지워지지 않습니다.**
 - 터미널에서: `python -m tools.make_reports --data data --tests`
+
+### 라벨 통계 (QA Summary 5.4 ~ 5.6)
+
+RAW 원본과 FINAL 라벨을 **읽기만** 해서 비교합니다. (어떤 파일도 수정하지 않음)
+
+```bash
+python -m tools.label_stats --data data                         # 화면에 출력
+python -m tools.label_stats --data data > reports/label_stats.md  # 파일로 저장
+```
+
+| 출력 | 내용 |
+|---|---|
+| RAW 최초 점검 | 원본 이미지 / TXT 수, Pair, Empty TXT, Class 4 |
+| Class 별 BBox 수 | RAW → FINAL 증감 |
+| 라벨 변경 내역 | 변경 없음 · BBox 추가 / 삭제 · Class 변경 이미지 수 |
+| scene_type 별 수 | `manifests/dataset_manifest.csv` 기준 |
+
+> `--data` 는 `raw/`, `final/` 이 들어 있는 폴더입니다. 경로가 틀리면 에러 없이 **0** 이 나오니 RAW 이미지 수가 900 인지 먼저 확인하세요.
 
 ### Validation 오류 종류
 

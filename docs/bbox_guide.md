@@ -1,9 +1,12 @@
 ## 공통원칙
 
-- BBox는 객체의 실제 외곽에 최대한 밀착하여 작성합니다.
-- 객체 일부가 가려져 있어도 가려진 부분을 포함 전체를 작성합니다.
-- 하나의 BBox에는 가능한 한 하나의 객체만 포함합니다.
-- '고무장갑' 클래스(class4)는 '플라스틱류, 돌, 금속류' 클래스(class1)로 대체합니다.
+- 객체 전체를 포함하되, 객체의 실제 외곽에 최대한 밀착하여 작성합니다.
+- 불필요한 배경은 최소화합니다.
+- 서로 다른 객체는 각각 BBox 를 작성합니다. (하나의 BBox 에는 하나의 객체)
+- 겹쳐 있어도 구분 가능하면 각각 작성합니다.
+- 작아도 Class 를 판단할 수 있으면 누락하지 않습니다.
+- 경계가 애매하면 임의로 정하지 않고 REVIEW 처리합니다.
+- Class 4(고무장갑)가 보이면 BBox 를 지우거나 다른 Class 로 바꾸지 않고 REVIEW (`unused_class_found`) 로 보냅니다. → `docs/class_guide.md` 참고
 
 ## 1. 기본 BBox 작성 기준
 
@@ -58,9 +61,10 @@ Class를 식별할 수 있고 실제 검출 대상이면 BBox를 작성합니다
 ## 5. 객체 일부가 가려진 경우
 
 객체 일부가 김치나 다른 객체에 가려져 있어도
-Class를 식별할 수 있다면 보이는 범위를 기준으로 BBox를 작성합니다.
+Class 를 식별할 수 있다면 **화면에 보이는 범위**를 기준으로 BBox 를 작성합니다.
+(가려진 부분을 추측해서 BBox 를 키우지 않습니다.)
 
-Class를 식별하기 어렵다면 REVIEW 처리합니다.
+Class 를 식별하기 어렵다면 REVIEW (`occlusion_ambiguous`) 처리합니다.
 
 ---
 
@@ -84,3 +88,6 @@ Class를 식별하기 어렵다면 REVIEW 처리합니다.
 
 BBox 범위나 객체 구분이 애매하면 임의로 결정하지 않습니다.
 
+1. REVIEW 체크 + review_reason 선택 (`bbox_boundary_ambiguous` · `object_separation_ambiguous` · `too_small_to_identify` · `occlusion_ambiguous`)
+2. 다른 팀원이 교차검수
+3. 2인 이상 합의로 최종 결정 → 수정 후 QA PASS

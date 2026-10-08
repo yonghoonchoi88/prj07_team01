@@ -6,6 +6,11 @@
 산출물(**Dataset Manifest · QA Summary · Test Report · Handoff**)까지 만들어 주는 팀 프로젝트입니다.
 
 
+<p align="center">
+  <img src="docs/FINAL_YOLO_images/Pasted%20image%2020261008103526.png" width="900" alt="라벨링 프로그램 실행 화면">
+  <br><sub>라벨링 프로그램 실행 화면 (v4.0 캡처 · v4.1 과 화면 동일) — 검수자 QA PASS · BBox 5개</sub>
+</p>
+
 ---
 
 <h2>1. 프로젝트 소개 <a href="https://www.figma.com/design/1B9QcM36Ne1j5sTHXcOAAV/1%25EC%25A1%25B0?node-id=160-143&t=7V3xsWXdhC4pMg7t-0"><img src="https://img.shields.io/badge/Figma_바로가기-F24E1E?logo=figma&logoColor=white" align="right"></a></h2>

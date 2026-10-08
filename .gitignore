@@ -44,3 +44,6 @@ runs/
 data/
 handoff_subject08/
 *.zip
+
+echo "pratice/images/" >> .gitignore
+echo "pratice/labels/" >> .gitignore

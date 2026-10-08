@@ -79,7 +79,15 @@ BBox는 객체 외곽에 최대한 밀착하여 작성했습니다. 상세 기�
 
 ## 8. 데이터 구성과 교과 8 주의사항
 
-### 8.1 scene_type 분포 (manifests/dataset_manifest.csv 기준)
+### 8.1 데이터 구성 (scene_type · Class · 검수 결과)
+
+**FINAL Class 별 BBox 수 (총 4,602개)**
+
+| Class | 0 나뭇잎·종이 | 1 플라스틱·돌·금속 | 2 나뭇가지 | 3 벌레 | 4 고무장갑 | 5 병해·갈변 | 6 파·고추 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| BBox | 868 | 1897 | 767 | 378 | 0 | 441 | 251 |
+
+**scene_type 분포 (source_dataset / original_split 별)**
 
 | source_dataset / original_split | kimchi_with_target | object_only | normal_kimchi | 합계 |
 |---|---:|---:|---:|---:|
@@ -88,7 +96,7 @@ BBox는 객체 외곽에 최대한 밀착하여 작성했습니다. 상세 기�
 | dataset2 / validation | 150 | 30 | 0 | 180 |
 | **합계** | **750** | **150** | **0** | **900** |
 
-- 1차 검수 결과: DONE 431장 (기존 라벨 그대로) · EDITED 469장 (BBox/Class 수정·추가·삭제)
+- 1차 검수 결과: DONE 431장 (기존 라벨 그대로) · EDITED 469장 (BBox 추가 +207 · 삭제 -4 · Class 변경 73장 · 좌표 조정 240장)
 - Empty TXT: 0개 (900장 모두 BBox 1개 이상, 사람 검수로 확인)
 - 교차검수: 900장 전부 1차 작업자와 다른 검수자가 QA PASS (본인 검수 0건)
 - REVIEW 제기 27장 → 전부 해결 (too_small_to_identify 19 · class_ambiguous 7 · bbox_boundary_ambiguous 1)
@@ -110,6 +118,8 @@ BBox는 객체 외곽에 최대한 밀착하여 작성했습니다. 상세 기�
    교과 8에서 split 을 정할 때 **촬영 날짜·시간 구간 단위로 나누는 방식**을 검토해 주세요.
 
 4. **Class 4(고무장갑)**: 900장 전체에서 발견 0건, `enabled: false` 유지.
+
+5. **Class 불균형**: Class 1(1,897개)이 Class 6(251개)의 약 7.6배입니다. 학습 시 Class 별 Precision / Recall 을 따로 확인해 주세요.
 
 > 교과 7은 기존 split 을 변경하지 않았습니다. 최종 Train / Validation / Test 구성은 교과 8에서 결정합니다.
 

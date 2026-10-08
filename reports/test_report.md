@@ -118,3 +118,22 @@
 
 최종 판정: **ACCEPTED**
 <!-- AUTO:ACCEPTANCE:END -->
+
+---
+
+## 4. Final Acceptance Test (README 기반 사용자 시험)
+- 시험자: 이승훈 (개발 미참여) · 일시: 2026-10-07 · 기준: README.md 만 참고
+
+| 항목 | 결과 | 비고 |
+|---|---|---|
+| 프로그램 실행 (python main.py) | PASS | |
+| 이미지 폴더 열기 | PASS | |
+| 기존 YOLO TXT Load · BBox 표시 | PASS | |
+| BBox 추가 / 수정 / 삭제 | PASS | |
+| Class 변경 | PASS | |
+| Zoom / Pan | | PASS |
+| Save → Reload | PASS | |
+| Validation (F7) | PASS | |
+| RAW 원본 보존 확인 | PASS | |
+
+최종 판정: ACCEPTED

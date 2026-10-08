@@ -15,19 +15,20 @@
 
 ### vscode 
 
-![vscode](FINAL_YOLO_images/Pasted%20image%2020261008090937.png)
+![vscode](Pasted%20image%2020261008090937.png)
 
 ### file_explorer
 
-![file_explorer](FINAL_YOLO_images/Pasted%20image%2020261008090948.png)
+![file_explorer](Pasted%20image%2020261008103431.png)
 
 
 ---
+
 ## 2️. 최종 이미지 900장
 
 ### images 폴더 · 파일 수 900장
 
-![images 폴더 · 파일 수 900장](FINAL_YOLO_images/Pasted%20image%2020261008091427.png)
+![images 폴더 · 파일 수 900장](Pasted%20image%2020261008091427.png)
 
 
 ---
@@ -35,7 +36,7 @@
 ## 3️. 최종 TXT 900개
 ### labels 폴더 · 파일 수 900개
 
-![labels 폴더 · 파일 수 900개](FINAL_YOLO_images/Pasted%20image%2020261008091538.png)
+![labels 폴더 · 파일 수 900개](Pasted%20image%2020261008091538.png)
 
 
 ---
@@ -45,17 +46,17 @@
 
 ### 검수 완료 화면 ① 
 
-![검수 완료 화면 ①](FINAL_YOLO_images/Pasted%20image%2020261008091853.png)
+![검수 완료 화면 ①](Pasted%20image%2020261008103556.png)
 
 
 ### 검수 완료 화면 ② 
 
-![검수 완료 화면 ②](FINAL_YOLO_images/Pasted%20image%2020261008091858.png)
+![검수 완료 화면 ②](Pasted%20image%2020261008103606.png)
 
 
 ### 검수 완료 화면 ③ 
 
-![검수 완료 화면 ③](FINAL_YOLO_images/Pasted%20image%2020261008091902.png)
+![검수 완료 화면 ③](Pasted%20image%2020261008103526.png)
 
 
 ---
@@ -65,17 +66,17 @@
 
 ### YOLO TXT ①
 
-![YOLO TXT ①](FINAL_YOLO_images/Pasted%20image%2020261008092325.png)
+![YOLO TXT ①](Pasted%20image%2020261008092325.png)
 
 
 ### YOLO TXT ②
 
-![YOLO TXT ②](FINAL_YOLO_images/Pasted%20image%2020261008092330.png)
+![YOLO TXT ②](Pasted%20image%2020261008092330.png)
 
 
 ### YOLO TXT ③
 
-![YOLO TXT ③](FINAL_YOLO_images/Pasted%20image%2020261008092334.png)
+![YOLO TXT ③](Pasted%20image%2020261008092334.png)
 
 
 ---

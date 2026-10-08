@@ -7,8 +7,8 @@
 
 
 <p align="center">
-  <img src="docs/FINAL_YOLO_images/Pasted%20image%2020261008103526.png" width="900" alt="라벨링 프로그램 실행 화면">
-  <br><sub>라벨링 프로그램 실행 화면 (v4.0 캡처 · v4.1 과 화면 동일) — 검수자 QA PASS · BBox 5개</sub>
+  <img src="docs/FINAL_YOLO_images/app_main.png" width="900" alt="라벨링 프로그램 실행 화면">
+  <br><sub>라벨링 프로그램 실행 화면 (v4.1 · 사진 영역 blur) — 검수자 교차검수 · REVIEW 사유 선택 · BBox 5개</sub>
 </p>
 
 ---

@@ -278,6 +278,11 @@ python -m tools.merge_results merge --data data ../박건_1007.zip ../이승훈_
 
 **주요 단축키:** `A`/`D` 이전/다음 · `Ctrl+S` 저장 · `Ctrl+Enter` 저장 후 다음 · `F5` Reload · `F7` Validation · `W`/`E`/`H` 모드 · `0~6` Class · `Delete` 삭제 · `Ctrl+Z` 되돌리기
 
+### 알려진 제한사항
+
+- 데이터에 정상 김치(`normal_kimchi`) 이미지가 **0장**입니다. 이물이 없는 김치에서의 오탐(False Positive)은 이 데이터만으로 평가하기 어렵습니다. → [`docs/subject08_handoff.md`](docs/subject08_handoff.md) 8.2 참고
+- Golden · Pilot 자동 테스트는 **좌표 변환 · 저장 · Reload 로직**을 검증합니다. 실제 마우스 조작(드래그 · Zoom/Pan)은 README 기반 Acceptance Test 에서 사람이 확인했습니다. → [`reports/test_report.md`](reports/test_report.md) 4장
+
 ## 15. Git · 버전 규칙
 
 - 개인 branch(`ch` 등)에 커밋 → push → Pull Request → merge. **main 에 직접 올리지 않습니다.**

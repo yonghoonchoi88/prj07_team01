@@ -10,8 +10,7 @@
 
 ---
 
-## 1. 프로젝트 소개
-[(Figma 바로가기)](https://www.figma.com/design/1B9QcM36Ne1j5sTHXcOAAV/1%25EC%25A1%25B0?node-id=160-143&t=7V3xsWXdhC4pMg7t-0)
+<h2>1. 프로젝트 소개 <a href="https://www.figma.com/design/..."><img src="https://img.shields.io/badge/Figma_바로가기-F24E1E?logo=figma&logoColor=white" align="right"></a></h2>
 
 | 항목 | 내용 |
 |---|---|

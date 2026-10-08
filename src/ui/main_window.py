@@ -43,7 +43,7 @@ from src.yolo.yolo_loader import (STAGE_FINAL, STAGE_RAW, STAGE_WORK, build_work
 from src.yolo.yolo_writer import (ROLE_REVIEWER, ROLE_WORKER, bbox_to_yolo, can_move_to_final,
                                   format_yolo_lines, pass_to_final, save_work)
 
-APP_TITLE = "조각김치 이물검출 라벨링 프로그램 v4.0"
+APP_TITLE = "조각김치 이물검출 라벨링 프로그램 v4.1"
 ROLE_TEXT = {ROLE_WORKER: "작업자", ROLE_REVIEWER: "검수자"}
 
 # ---------- 디자인 ----------

@@ -1,0 +1,18 @@
+날짜,작성자,구분,항목,세부내용,상태,관련
+2026-10-08,최용훈,Done,작업 이력 CSV 업로드,manifests/label_history.csv (1944줄) · manifests/validation_runs.csv (10회) 업로드 → 7번 Manifest 보조 기록,완료,v4.0
+2026-10-08,최용훈,Done,README 구조 정리,설치 순서 (venv 만들기 → 켜기 → 설치) · 작업대장 컬럼 설명 수정 · 11개 산출물 표 · 라벨 통계 사용법 · 16. 버전 변경 이력 (10번 산출물),완료,v4.1
+2026-10-08,박건,Done,README 최종 수정,Figma 바로가기 배지 · 문구 정리 · 증빙 문서 · git_commit_log 폴더 구조 반영,완료,v4.1
+2026-10-08,박건,Done,프로그램 버전 표기,main.py · src/ui/main_window.py 창 제목 및 README 제목을 v4.1 로 통일,완료,v4.1
+2026-10-08,박건,Done,tools/label_stats.py 작성,RAW 와 FINAL 라벨을 읽기만 해서 비교 - RAW 최초 점검 · Class 별 BBox · 변경 내역 · scene_type 집계,완료,v4.1
+2026-10-08,박건,Done,QA Summary 추가 통계,5장 작성 - scene_type 750/150/0 · Empty TXT 0 · 교차검수 900장 (본인 검수 0) · RAW 최초 점검 · Class 별 BBox 4399 → 4602 (+203) · 변경 내역 (8번 산출물),완료,v4.1
+2026-10-08,이승훈,Done,REVIEW 사유 중복 집계 후속 처리,10-07 Todo 항목 - 코드 수정 대신 QA Summary 5.3 에 실제 이미지 수 7 / 1 / 19 (합계 27장) 명시,완료,v4.1
+2026-10-08,김하민,Done,교과 8 Handoff 주의사항,8장 작성 - 데이터 구성 · Class 별 BBox · 정상 김치 0장 · object_only 150장 · train/validation 유사 장면 (validation 76%) · Class 불균형 7.6배 (11번 산출물),완료,v4.1
+2026-10-08,김하민,Done,Handoff 최종본 반영,8.1 표 제목 정리본을 main 에 반영 (PR #36) · 최종본과 바이트 단위 동일 확인,완료,v4.1
+2026-10-08,최용훈,Done,Test Report Acceptance Test 기록,README 기반 사용자 시험 (시험자 이승훈) 결과 4장 추가 · Zoom/Pan 결과 칸 수정 · FAIL-02 작성 (9번 산출물),완료,v4.1
+2026-10-08,심준형,Done,FINAL YOLO 라벨 증빙 문서,docs/FINAL_YOLO_Label_Evidence.md - final 폴더 구조 · images 900 / labels 900 파일 수 · 대표 검수 화면 3장 · 대표 YOLO TXT 3개 (3번 산출물),완료,v4.1
+2026-10-08,심준형,Done,증빙 캡처 교체,중간 상태 화면을 최종 데이터 기준 화면으로 교체 (QA PASS 900/900 · DONE 431 · EDITED 469),완료,v4.1
+2026-10-08,박건,Fix,증빙 이미지 경로 수정,증빙 문서 이미지 10개 경로에 FINAL_YOLO_images/ 폴더명 추가 → GitHub 에서 정상 표시,완료,v4.1
+2026-10-08,박건,Fix,BBox 기준서 모순 수정,Class 4 처리를 REVIEW (unused_class_found) 로 통일 · 가림 규칙을 '보이는 범위' 로 통일 · 판단 어려운 경우 REVIEW 절차 추가 (6번 산출물),완료,v4.1
+2026-10-08,이승훈,Done,Git 커밋 이력 갱신,docs/git_commit_log.md 갱신 (팀원 5명 · PR 기록 반영) (2번 산출물),완료,v4.1
+2026-10-08,김하민,Done,11개 산출물 최종 점검,수행가이드 기준 대조 · manifest · QA Summary · Handoff · 증빙 캡처 숫자 일치 확인 (DONE 431 · EDITED 469 · QA PASS 900),완료,v4.1
+2026-10-08,김하민,Todo,git_commit_log 최종본,마지막 merge 후 docs/git_commit_log.md 재생성,예정,v4.1

@@ -5,8 +5,6 @@
 조각김치 이미지 900장의 이물질 BBox 라벨을 **검수 · 수정 · 교차검수**하고,
 산출물(**Dataset Manifest · QA Summary · Test Report · Handoff**)까지 만들어 주는 팀 프로젝트입니다.
 
-> v4.0 부터는 기존 작업 데이터를 쓰지 않고 **원본(raw)에서 새로 시작**합니다.
-> 작업 상태는 `dataset_manifest.csv` 한 장에 모이고, 보고서 숫자는 프로그램이 자동으로 채웁니다.
 
 ---
 
@@ -58,8 +56,9 @@ prj07_team01/
 │   ├── class_guide.md                # Class 기준서
 │   ├── bbox_guide.md                 # BBox 기준서
 │   ├── subject08_handoff.md          # (자동 생성) 교과 8 전달 문서
+│   ├── git_commit_log.md             # Git 커밋 이력 (2번 산출물 증빙 · 팀원별 · 날짜별)
 │   ├── FINAL_YOLO_Label_Evidence.md  # 최종 라벨링 증빙 문서
-│   └── FINAL_YOLO_images             # 최종 라벨링 증빙 문서 삽입 이미지
+│   └── FINAL_YOLO_images/            # 최종 라벨링 증빙 문서 삽입 이미지
 ├── manifests/
 │   ├── dataset_manifest.csv          # (자동 생성) 제출용 작업대장 사본
 │   ├── label_history.csv             # (자동 생성) 라벨 저장·검수 이력 (누가·언제·무엇을)

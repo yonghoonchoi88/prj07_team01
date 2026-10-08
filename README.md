@@ -77,12 +77,16 @@ prj07_team01/
     └── final/labels/            # QA PASS TXT
 ```
 
-## 4. 설치 방법SS
+## 4. 설치 방법
 
 ```bash
 # WSL / Ubuntu
-sudo apt install python3-tk          # tkinter 가 없을 때만
-pip install -r requirements.txt      # pillow, pyyaml
+sudo apt install python3-tk python3-venv   # tkinter · venv 가 없을 때만
+
+# 프로젝트 폴더에서
+python3 -m venv .venv                      # 1) 가상환경 만들기
+source .venv/bin/activate                  # 2) 켜기 → 앞에 (.venv) 표시
+pip install -r requirements.txt            # 3) 패키지 설치 (pillow, pyyaml)
 ```
 
 ## 5. 실행 방법

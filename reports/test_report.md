@@ -83,11 +83,6 @@
 - 조치: 화면과 저장 함수 두 곳에서 work 존재 여부 확인 (이중 안전장치)
 - 재시험: PASS
 
-#### FAIL-02
-- 문제:
-- 원인:
-- 조치:
-- 재시험:
 
 ---
 
@@ -131,7 +126,7 @@
 | 기존 YOLO TXT Load · BBox 표시 | PASS | |
 | BBox 추가 / 수정 / 삭제 | PASS | |
 | Class 변경 | PASS | |
-| Zoom / Pan | | PASS |
+| Zoom / Pan | PASS | | 
 | Save → Reload | PASS | |
 | Validation (F7) | PASS | |
 | RAW 원본 보존 확인 | PASS | |

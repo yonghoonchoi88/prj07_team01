@@ -1,12 +1,15 @@
-# 조각김치 이물검출 라벨링 프로그램 (v4.0)
+# 조각김치 이물검출 라벨링 프로그램 (v4.1)
 
 ### [이 데이터는 교육용으로 제작된 100% 가상 데이터입니다]
 
 조각김치 이미지 900장의 이물질 BBox 라벨을 **검수 · 수정 · 교차검수**하고,
 산출물(**Dataset Manifest · QA Summary · Test Report · Handoff**)까지 만들어 주는 팀 프로젝트입니다.
 
-> v4.0 부터는 기존 작업 데이터를 쓰지 않고 **원본(raw)에서 새로 시작**합니다.
-> 작업 상태는 `dataset_manifest.csv` 한 장에 모이고, 보고서 숫자는 프로그램이 자동으로 채웁니다.
+
+<p align="center">
+  <img src="docs/FINAL_YOLO_images/app_main.png" width="900" alt="라벨링 프로그램 실행 화면">
+  <br><sub>라벨링 프로그램 실행 화면 (v4.1 · 사진 영역 blur) — 검수자 교차검수 · REVIEW 사유 선택 · BBox 5개</sub>
+</p>
 
 ---
 
@@ -58,8 +61,9 @@ prj07_team01/
 │   ├── class_guide.md                # Class 기준서
 │   ├── bbox_guide.md                 # BBox 기준서
 │   ├── subject08_handoff.md          # (자동 생성) 교과 8 전달 문서
+│   ├── git_commit_log.md             # Git 커밋 이력 (2번 산출물 증빙 · 팀원별 · 날짜별)
 │   ├── FINAL_YOLO_Label_Evidence.md  # 최종 라벨링 증빙 문서
-│   └── FINAL_YOLO_images             # 최종 라벨링 증빙 문서 삽입 이미지
+│   └── FINAL_YOLO_images/            # 최종 라벨링 증빙 문서 삽입 이미지
 ├── manifests/
 │   ├── dataset_manifest.csv          # (자동 생성) 제출용 작업대장 사본
 │   ├── label_history.csv             # (자동 생성) 라벨 저장·검수 이력 (누가·언제·무엇을)
@@ -210,7 +214,7 @@ data/raw  ──작업자 1차 검수──▶  data/work/labels  ──검수�
 | 7 | Dataset Manifest | `manifests/dataset_manifest.csv` | 작업 중 자동 기록 → 산출물 생성 시 복사 |
 | 8 | QA Summary | `reports/qa_summary.md` | 검사 > 산출물 생성 (Validation 최초 vs 최종, Human QA, REVIEW 사유별 집계) + `tools/label_stats` 결과 수기 추가 (5장: scene_type · Class별 BBox · 변경 내역) |
 | 9 | Test Report | `reports/test_report.md` | 검사 > Golden · Pilot 자동 테스트 → 산출물 생성 (FAIL 기록 · Acceptance Test 는 직접 작성) |
-| 10 | README | `README.md` | 이 문서 |
+| 10 | README | `README.md` | 직접 작성 |
 | 11 | 교과 8 Handoff | `docs/subject08_handoff.md` | 산출물 생성 / 검사 > Handoff 패키지 (8장 주의사항은 직접 작성) |
 
 - `<!-- AUTO:... -->` 사이만 프로그램이 다시 씁니다. **그 밖에 직접 쓴 메모는 지워지지 않습니다.**
@@ -274,6 +278,11 @@ python -m tools.merge_results merge --data data ../박건_1007.zip ../이승훈_
 
 **주요 단축키:** `A`/`D` 이전/다음 · `Ctrl+S` 저장 · `Ctrl+Enter` 저장 후 다음 · `F5` Reload · `F7` Validation · `W`/`E`/`H` 모드 · `0~6` Class · `Delete` 삭제 · `Ctrl+Z` 되돌리기
 
+### 알려진 제한사항
+
+- 데이터에 정상 김치(`normal_kimchi`) 이미지가 **0장**입니다. 이물이 없는 김치에서의 오탐(False Positive)은 이 데이터만으로 평가하기 어렵습니다. → [`docs/subject08_handoff.md`](docs/subject08_handoff.md) 8.2 참고
+- Golden · Pilot 자동 테스트는 **좌표 변환 · 저장 · Reload 로직**을 검증합니다. 실제 마우스 조작(드래그 · Zoom/Pan)은 README 기반 Acceptance Test 에서 사람이 확인했습니다. → [`reports/test_report.md`](reports/test_report.md) 4장
+
 ## 15. Git · 버전 규칙
 
 - 개인 branch(`ch` 등)에 커밋 → push → Pull Request → merge. **main 에 직접 올리지 않습니다.**
@@ -286,7 +295,7 @@ python -m tools.merge_results merge --data data ../박건_1007.zip ../이승훈_
 
 ---
 
-## 변경 이력
+## 16. 버전 변경 이력
 
 | 날짜 | 버전 | 내용 |
 |---|:---:|---|
@@ -295,3 +304,4 @@ python -m tools.merge_results merge --data data ../박건_1007.zip ../이승훈_
 | 2026-10-06 | 2.1 | RAW → FINAL 직행 금지 · 검수자의 RAW 되돌리기 금지 |
 | 2026-10-06 | 3.0 | data 폴더 통합 (여러 데이터셋을 하나로) · source_dataset · original_split · qa_status |
 | 2026-10-07 | 4.0 | 교과 7 기준으로 재설계: `data/raw · work · final(images+labels)` · **dataset_manifest.csv (8개 컬럼)** · status 자동 판정(DONE/EDITED) · REVIEW + review_reason 6종 · 검수자 QA PASS / 반려 · 교차검수(본인 PASS 금지) · 이미지 목록 필터 · 전체 Validation 창 · Golden/Pilot 자동 테스트 · QA Summary · Test Report · Handoff 자동 생성 · 팀 결과 pack/merge |
+| 2026-10-08 | 4.1 | `tools/label_stats.py` 추가 (RAW vs FINAL 통계) · 설치 순서 수정 (venv) · 작업대장 컬럼 설명 수정 · 11개 산출물 표 정리 · QA Summary 5장 / Handoff 8장 통계 보강 · FINAL 라벨 증빙 문서 추가 · Acceptance Test 기록 |

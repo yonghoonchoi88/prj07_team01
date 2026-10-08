@@ -1,3 +1,8 @@
+# FINAL YOLO 라벨 증빙 (3번 산출물)
+
+> 교과 7 **3번 산출물** 증빙 문서입니다. 실제 900장 데이터(JPG · TXT)는 Git 에 올리지 않고,
+> `final/` 폴더 구조 · 파일 수 · 대표 검수 화면 · 대표 YOLO TXT 캡처로 증빙합니다.
+> 화면 캡처는 v4.0 프로그램 화면이며, v4.1 과 기능 · 화면이 동일합니다.
 
 ## ✅ 증빙 체크리스트
 
@@ -19,10 +24,11 @@
 
 ### file_explorer
 
-![file_explorer](FINAL_YOLO_images/Pasted%20image%2020261008090948.png)
+![file_explorer](FINAL_YOLO_images/Pasted%20image%2020261008103431.png)
 
 
 ---
+
 ## 2️. 최종 이미지 900장
 
 ### images 폴더 · 파일 수 900장
@@ -45,17 +51,17 @@
 
 ### 검수 완료 화면 ① 
 
-![검수 완료 화면 ①](FINAL_YOLO_images/Pasted%20image%2020261008091853.png)
+![검수 완료 화면 ①](FINAL_YOLO_images/Pasted%20image%2020261008103556.png)
 
 
 ### 검수 완료 화면 ② 
 
-![검수 완료 화면 ②](FINAL_YOLO_images/Pasted%20image%2020261008091858.png)
+![검수 완료 화면 ②](FINAL_YOLO_images/Pasted%20image%2020261008103606.png)
 
 
 ### 검수 완료 화면 ③ 
 
-![검수 완료 화면 ③](FINAL_YOLO_images/Pasted%20image%2020261008091902.png)
+![검수 완료 화면 ③](FINAL_YOLO_images/Pasted%20image%2020261008103526.png)
 
 
 ---
@@ -65,17 +71,17 @@
 
 ### YOLO TXT ①
 
-![YOLO TXT ①](FINAL_YOLO_images/Pasted%20image%2020261008092325.png)
+![YOLO TXT ①](FINAL_YOLO_images/image.png)
 
 
 ### YOLO TXT ②
 
-![YOLO TXT ②](FINAL_YOLO_images/Pasted%20image%2020261008092330.png)
+![YOLO TXT ②](FINAL_YOLO_images/image1.png)
 
 
 ### YOLO TXT ③
 
-![YOLO TXT ③](FINAL_YOLO_images/Pasted%20image%2020261008092334.png)
+![YOLO TXT ③](FINAL_YOLO_images/image3.png)
 
 
 ---
